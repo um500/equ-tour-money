@@ -28,15 +28,23 @@ export default function NavbarClient({
 
       {/* ================= MAIN NAV ================= */}
       <nav className="bg-[#0e2240] dark:bg-slate-900 text-white transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[80px] flex items-center justify-between">
 
           {/* LOGO */}
-          <Link
-            href="/"
-            className="text-2xl sm:text-3xl font-serif font-semibold whitespace-nowrap"
-          >
-            <span>Equatorial </span>
-            <span className="text-yellow-400">Tours</span>
+          <Link href="/" className="flex-shrink-0">
+            <div className="flex flex-col leading-tight">
+              <span className="text-2xl sm:text-3xl font-serif font-bold text-white">
+                Equatorial
+              </span>
+
+              <span className="text-lg sm:text-xl font-serif font-semibold text-yellow-400 -mt-1">
+                Tours & Forex
+              </span>
+
+              <span className="text-[11px] text-gray-300 mt-1 tracking-wide">
+                An Equatorial Company
+              </span>
+            </div>
           </Link>
 
           {/* DESKTOP MENU */}
@@ -63,7 +71,7 @@ export default function NavbarClient({
                 </button>
 
                 {openDesktopMenu === "international" && (
-                  <div className="absolute left-0 top-full bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 p-6 w-72 shadow-xl rounded-lg border border-gray-200 dark:border-slate-700 transition">
+                  <div className="absolute left-0 top-full bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 p-6 w-72 shadow-xl rounded-lg">
                     {internationalCountries?.map((country) => (
                       <Link
                         key={country.slug}
@@ -88,7 +96,7 @@ export default function NavbarClient({
                 </button>
 
                 {openDesktopMenu === "india" && (
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 p-8 max-w-6xl w-[95vw] lg:w-[900px] shadow-2xl rounded-lg border border-gray-200 dark:border-slate-700 transition">
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 p-8 max-w-6xl w-[95vw] lg:w-[900px] shadow-2xl rounded-lg">
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                       {indiaStates?.map((state) => (
                         <Link
@@ -114,43 +122,46 @@ export default function NavbarClient({
 
             </div>
 
-            {/* CURRENCY EXCHANGE BUTTON */}
+            {/* DESKTOP CURRENCY BUTTON */}
             <Link
               href="/currency"
-              className="bg-yellow-500 text-black px-6 py-2 font-semibold rounded-md hover:bg-yellow-600 transition"
+              className="bg-yellow-500 text-black px-6 py-2 font-semibold rounded-md hover:bg-yellow-600 transition whitespace-nowrap"
             >
               Currency Exchange
             </Link>
 
           </div>
 
-          {/* MOBILE TOGGLE */}
-          <button
-            className="lg:hidden text-white"
-            onClick={() => setMobileOpen(!mobileOpen)}
-          >
-            {mobileOpen ? <X size={28} /> : <Menu size={28} />}
-          </button>
+          {/* ✅ MOBILE RIGHT SECTION (Forex + Toggle) */}
+          <div className="lg:hidden flex items-center gap-3">
+
+            <Link
+              href="/currency"
+              className="bg-yellow-500 text-black px-4 py-2 text-sm font-semibold rounded-md hover:bg-yellow-600 transition whitespace-nowrap"
+            >
+              Currency Exchange
+            </Link>
+
+            <button
+              className="text-white"
+              onClick={() => setMobileOpen(!mobileOpen)}
+            >
+              {mobileOpen ? <X size={26} /> : <Menu size={26} />}
+            </button>
+
+          </div>
 
         </div>
 
         {/* ================= MOBILE MENU ================= */}
         {mobileOpen && (
-          <div className="lg:hidden bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 px-6 py-8 space-y-6 transition-colors duration-300">
+          <div className="lg:hidden bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 px-6 py-10 space-y-6 shadow-lg">
 
-            <Link
-              href="/"
-              onClick={() => setMobileOpen(false)}
-              className="block text-base"
-            >
+            <Link href="/" onClick={() => setMobileOpen(false)} className="block text-base">
               HOME
             </Link>
 
-            <Link
-              href="/about"
-              onClick={() => setMobileOpen(false)}
-              className="block text-base"
-            >
+            <Link href="/about" onClick={() => setMobileOpen(false)} className="block text-base">
               ABOUT
             </Link>
 
@@ -165,9 +176,7 @@ export default function NavbarClient({
                 className="w-full flex justify-between items-center text-base"
               >
                 <span>INTERNATIONAL</span>
-                <span>
-                  {openMobileMenu === "international" ? "−" : "+"}
-                </span>
+                <span>{openMobileMenu === "international" ? "−" : "+"}</span>
               </button>
 
               {openMobileMenu === "international" && (
@@ -197,9 +206,7 @@ export default function NavbarClient({
                 className="w-full flex justify-between items-center text-base"
               >
                 <span>INDIA</span>
-                <span>
-                  {openMobileMenu === "india" ? "−" : "+"}
-                </span>
+                <span>{openMobileMenu === "india" ? "−" : "+"}</span>
               </button>
 
               {openMobileMenu === "india" && (
@@ -218,29 +225,12 @@ export default function NavbarClient({
               )}
             </div>
 
-            <Link
-              href="/packages"
-              onClick={() => setMobileOpen(false)}
-              className="block text-base"
-            >
+            <Link href="/packages" onClick={() => setMobileOpen(false)} className="block text-base">
               TOURS
             </Link>
 
-            <Link
-              href="/contact"
-              onClick={() => setMobileOpen(false)}
-              className="block text-base"
-            >
+            <Link href="/contact" onClick={() => setMobileOpen(false)} className="block text-base">
               CONTACT
-            </Link>
-
-            {/* MOBILE CURRENCY BUTTON */}
-            <Link
-              href="/currency"
-              onClick={() => setMobileOpen(false)}
-              className="block bg-yellow-500 text-black py-3 rounded-md font-semibold text-center mt-4"
-            >
-              Currency Exchange
             </Link>
 
           </div>

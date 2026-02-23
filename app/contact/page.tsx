@@ -33,9 +33,7 @@ export default function ContactPage() {
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
@@ -55,7 +53,7 @@ export default function ContactPage() {
       } else {
         setStatus("error");
       }
-    } catch (error) {
+    } catch {
       setStatus("error");
     }
 
@@ -65,8 +63,8 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-[#f4efe6]">
 
-      {/* ================= HERO SECTION ================= */}
-      <section className="relative w-full h-[320px] md:h-[400px] flex items-center justify-center text-center overflow-hidden">
+      {/* ================= HERO ================= */}
+      <section className="relative w-full h-[340px] md:h-[420px] flex items-center justify-center text-center overflow-hidden">
 
         <img
           src="https://images.unsplash.com/photo-1501785888041-af3ef285b470"
@@ -78,7 +76,7 @@ export default function ContactPage() {
 
         <div className="relative z-10 px-6 text-white">
           <p className="text-yellow-400 text-sm tracking-widest mb-3">
-            HOME / CONTACT
+            EQUATORIAL TOURS & FOREX
           </p>
 
           <h1 className="text-4xl md:text-6xl font-bold">
@@ -86,8 +84,8 @@ export default function ContactPage() {
           </h1>
 
           <p className="mt-4 text-gray-200 max-w-2xl mx-auto text-sm md:text-base">
-            We are here to assist you with Tours & Forex services.
-            Let’s plan your next journey together.
+            A Division of Equatorial Group.  
+            We provide premium Tours, Forex, IT Services & Luxury Car Solutions.
           </p>
 
           <div className="mt-6">
@@ -101,46 +99,15 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* ================= MAIN SECTION ================= */}
+      {/* ================= MAIN ================= */}
       <section className="max-w-7xl mx-auto px-6 py-16 grid lg:grid-cols-2 gap-14">
 
-        {/* LEFT SIDE */}
+        {/* LEFT INFO */}
         <div className="space-y-10">
-          <div className="flex items-start gap-4">
-            <MapPin className="text-yellow-600 mt-1" />
-            <div>
-              <h4 className="font-semibold text-lg">Office Address</h4>
-              <p className="text-gray-600">
-                Kolkata, West Bengal, India
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-4">
-            <Phone className="text-yellow-600 mt-1" />
-            <div>
-              <h4 className="font-semibold text-lg">Phone</h4>
-              <p className="text-gray-600">+91 98765 43210</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-4">
-            <Mail className="text-yellow-600 mt-1" />
-            <div>
-              <h4 className="font-semibold text-lg">Email</h4>
-              <p className="text-gray-600">info@equatorialtours.com</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-4">
-            <Clock className="text-yellow-600 mt-1" />
-            <div>
-              <h4 className="font-semibold text-lg">Working Hours</h4>
-              <p className="text-gray-600">
-                Mon – Sat: 9:00 AM – 6:00 PM
-              </p>
-            </div>
-          </div>
+          <InfoBox icon={<MapPin />} title="Office Address" text="Kolkata, West Bengal, India" />
+          <InfoBox icon={<Phone />} title="Phone" text="+91 98765 43210" />
+          <InfoBox icon={<Mail />} title="Email" text="info@equatorialtours.com" />
+          <InfoBox icon={<Clock />} title="Working Hours" text="Mon – Sat: 9:00 AM – 6:00 PM" />
 
           <div className="rounded-2xl overflow-hidden shadow-xl border-2 border-yellow-500">
             <iframe
@@ -152,14 +119,17 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* RIGHT SIDE FORM */}
-        <div className="bg-white/95 backdrop-blur-md p-10 md:p-12 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-yellow-500/40 max-w-xl w-full mx-auto">
+        {/* RIGHT FORM */}
+        <div className="bg-white p-10 md:p-12 rounded-3xl shadow-xl border border-yellow-500/40 max-w-xl w-full mx-auto">
 
-          <h3 className="text-3xl font-bold text-center mb-6">
+          <h3 className="text-3xl font-bold text-center mb-2">
             Send Us an <span className="text-yellow-600">Enquiry</span>
           </h3>
 
-          {/* STATUS MESSAGE BOX */}
+          <p className="text-center text-sm text-gray-500 mb-8">
+            Equatorial Tours & Forex – A Division of Equatorial Group
+          </p>
+
           {status === "success" && (
             <div className="mb-6 bg-green-100 text-green-800 p-4 rounded-xl text-center font-medium">
               ✅ We’ll get back to you soon!
@@ -172,18 +142,12 @@ export default function ContactPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-7">
+          <form onSubmit={handleSubmit} className="space-y-6">
 
-            <div className="grid md:grid-cols-2 gap-6">
-              <InputField label="Full Name" name="name" value={formData.name} onChange={handleChange} />
-              <InputField label="Email" name="email" type="email" value={formData.email} onChange={handleChange} />
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              <InputField label="Phone Number" name="phone" type="tel" value={formData.phone} onChange={handleChange} />
-              <InputField label="Country" name="country" value={formData.country} onChange={handleChange} />
-            </div>
-
+            <InputField label="Full Name" name="name" value={formData.name} onChange={handleChange} />
+            <InputField label="Email" name="email" type="email" value={formData.email} onChange={handleChange} />
+            <InputField label="Phone Number" name="phone" type="tel" value={formData.phone} onChange={handleChange} />
+            <InputField label="Country" name="country" value={formData.country} onChange={handleChange} />
             <InputField label="Full Address" name="address" value={formData.address} onChange={handleChange} />
 
             <select
@@ -191,33 +155,29 @@ export default function ContactPage() {
               required
               value={formData.service}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-xl px-4 py-4 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-400 outline-none transition bg-white"
+              className="w-full border border-gray-300 rounded-xl px-4 py-4 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-400 outline-none transition"
             >
               <option value="">Select Service</option>
-              <option value="forex">Forex</option>
+              <option value="forex">Money Exchange (Forex)</option>
               <option value="tour">Tour & Travel</option>
-              <option value="both">Both</option>
+              <option value="it">IT Services</option>
+              <option value="car">Luxurious Car Sale</option>
             </select>
 
-            <div className="relative">
-              <textarea
-                name="message"
-                rows={4}
-                required
-                value={formData.message}
-                onChange={handleChange}
-                placeholder=" "
-                className="peer w-full border border-gray-300 rounded-xl px-4 pt-6 pb-3 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-400 outline-none transition"
-              />
-              <label className="absolute left-4 top-2 text-gray-500 text-sm peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 transition-all">
-                Your Message
-              </label>
-            </div>
+            <textarea
+              name="message"
+              rows={4}
+              required
+              value={formData.message}
+              onChange={handleChange}
+              placeholder="Your Message"
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-400 outline-none transition"
+            />
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-white py-4 rounded-xl font-semibold text-lg hover:shadow-xl hover:scale-[1.02] transition duration-300 disabled:opacity-60"
+              className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-white py-4 rounded-xl font-semibold text-lg hover:shadow-lg transition duration-300 disabled:opacity-60"
             >
               {loading ? "Sending..." : "Send Enquiry"}
             </button>
@@ -228,6 +188,8 @@ export default function ContactPage() {
     </div>
   );
 }
+
+/* ================= REUSABLE COMPONENTS ================= */
 
 function InputField({
   label,
@@ -243,19 +205,26 @@ function InputField({
   type?: string;
 }) {
   return (
-    <div className="relative">
-      <input
-        type={type}
-        name={name}
-        required
-        value={value}
-        onChange={onChange}
-        placeholder=" "
-        className="peer w-full border border-gray-300 rounded-xl px-4 pt-6 pb-3 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-400 outline-none transition"
-      />
-      <label className="absolute left-4 top-2 text-gray-500 text-sm peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 transition-all">
-        {label}
-      </label>
+    <input
+      type={type}
+      name={name}
+      required
+      value={value}
+      onChange={onChange}
+      placeholder={label}
+      className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-400 outline-none transition"
+    />
+  );
+}
+
+function InfoBox({ icon, title, text }: any) {
+  return (
+    <div className="flex items-start gap-4">
+      <div className="text-yellow-600 mt-1">{icon}</div>
+      <div>
+        <h4 className="font-semibold text-lg">{title}</h4>
+        <p className="text-gray-600">{text}</p>
+      </div>
     </div>
   );
 }
