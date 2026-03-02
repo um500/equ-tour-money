@@ -42,20 +42,17 @@ export default function CurrencyPage() {
 
   // Fetch rates
   useEffect(() => {
-    async function fetchRates() {
-      try {
-        const res = await fetch(
-          `https://api.exchangerate-api.com/v4/latest/${from}`
-        );
-        const data = await res.json();
-        setRates(data.rates);
-      } catch (error) {
-        console.error("Rate fetch error:", error);
-      }
-    }
+  async function fetchRates() {
+    const res = await fetch(`/api/rates?from=${from}`);
+    const data = await res.json();
 
-    fetchRates();
-  }, [from]);
+    if (data.success) {
+      setRates(data.rates);
+    }
+  }
+
+  fetchRates();
+}, [from]);
 
   const handleConvert = () => {
     if (!rates[to]) return;

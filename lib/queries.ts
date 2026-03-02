@@ -1,4 +1,6 @@
+// =============================
 // India States (reference-based filtering)
+// =============================
 export const indiaStatesQuery = `
 *[_type == "state" && country->type == "india"] | order(name asc) {
   name,
@@ -6,6 +8,10 @@ export const indiaStatesQuery = `
 }
 `;
 
+
+// =============================
+// International Countries
+// =============================
 export const internationalCountriesQuery = `
 *[_type == "country" && type == "international"] | order(name asc) {
   name,
@@ -17,6 +23,10 @@ export const internationalCountriesQuery = `
 }
 `;
 
+
+// =============================
+// Home Tours
+// =============================
 export const homeToursQuery = `
 *[_type == "tour"] | order(_createdAt desc){
   _id,
@@ -27,5 +37,16 @@ export const homeToursQuery = `
   shortDescription,
   mainImage,
   category
+}
+`;
+
+
+// =============================
+// Currency Markup (NEW)
+// =============================
+export const currencyMarkupQuery = `
+*[_type == "currencyMarkup" && isActive == true]{
+  currencyCode,
+  markupValue
 }
 `;
