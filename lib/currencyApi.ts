@@ -1,3 +1,5 @@
+// lib/currencyApi.ts
+
 export async function getRates(baseCurrency: string) {
   try {
     if (!baseCurrency) {
@@ -12,12 +14,12 @@ export async function getRates(baseCurrency: string) {
       }
     );
 
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData?.error || "Failed to fetch rates");
-    }
-
+    // Parse JSON only once
     const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data?.error || "Failed to fetch rates");
+    }
 
     return {
       success: true,
