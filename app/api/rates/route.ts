@@ -98,26 +98,30 @@ export async function GET(req: NextRequest) {
 }
 
 
+
+
+// XE 
+
 // import { NextRequest, NextResponse } from "next/server";
 
 // export async function GET(req: NextRequest) {
 //   try {
 //     const { searchParams } = new URL(req.url);
-//     const from = searchParams.get("from");
+//     const from = searchParams.get("from") || "USD";
 
-//     if (!from) {
+//     const accountId = process.env.XE_ACCOUNT_ID;
+//     const apiKey = process.env.XE_API_KEY;
+
+//     if (!accountId || !apiKey) {
 //       return NextResponse.json(
-//         { success: false, error: "Base currency is required" },
-//         { status: 400 }
+//         { success: false, error: "XE credentials missing" },
+//         { status: 500 }
 //       );
 //     }
 
-//     const accountId = process.env.XE_ACCOUNT_ID!;
-//     const apiKey = process.env.XE_API_KEY!;
-
 //     const toCurrencies = "EUR,INR,JPY,RUB,AED,GBP";
 
-//     const response = await fetch(
+//     const xeRes = await fetch(
 //       `https://xecdapi.xe.com/v1/convert_from.json/?from=${from}&to=${toCurrencies}`,
 //       {
 //         headers: {
@@ -129,20 +133,17 @@ export async function GET(req: NextRequest) {
 //       }
 //     );
 
-//     if (!response.ok) {
-//       const errorText = await response.text();
-//       console.error("XE ERROR:", errorText);
+//     if (!xeRes.ok) {
+//       const text = await xeRes.text();
+//       console.error("XE ERROR:", text);
 
 //       return NextResponse.json(
-//         { success: false, error: "XE API failed" },
+//         { success: false, error: "Failed to fetch XE rates" },
 //         { status: 500 }
 //       );
 //     }
 
-//     const data = await response.json();
-
-//     // 🔥 VERY IMPORTANT — Check raw data
-//     console.log("XE RAW:", data);
+//     const data = await xeRes.json();
 
 //     const rates: Record<string, number> = {};
 
@@ -156,14 +157,14 @@ export async function GET(req: NextRequest) {
 //       success: true,
 //       base: from,
 //       rates,
-//       lastUpdated: new Date().toISOString(),
+//       updated: new Date().toISOString(),
 //     });
 
 //   } catch (error) {
-//     console.error("Server error:", error);
+//     console.error("SERVER ERROR:", error);
 
 //     return NextResponse.json(
-//       { success: false, error: "Internal server error" },
+//       { success: false, error: "Server error" },
 //       { status: 500 }
 //     );
 //   }
