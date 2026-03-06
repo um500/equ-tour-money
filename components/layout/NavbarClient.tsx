@@ -38,7 +38,7 @@ export default function NavbarClient({
               </span>
 
               <span className="text-lg sm:text-xl font-serif font-semibold text-yellow-400 -mt-1">
-                Tours & Forex
+                Tours & Money Changer Pvt. Ltd.
               </span>
 
               <span className="text-[11px] text-gray-300 mt-1 tracking-wide">
