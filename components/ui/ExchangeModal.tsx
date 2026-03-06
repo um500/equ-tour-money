@@ -21,8 +21,9 @@ export default function ExchangeModal({
   onClose,
 }: Props) {
 
-  const [from, setFrom] = useState<string>(currency.code);
-  const [to, setTo] = useState<string>("USD");
+  const [from, setFrom] = useState<string>("USD");
+  const [to, setTo] = useState<string>(currency.code);
+
   const [liveRate, setLiveRate] = useState<number>(rate || 0);
   const [loadingRate, setLoadingRate] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -54,8 +55,11 @@ export default function ExchangeModal({
   }, []);
 
   useEffect(() => {
+
     async function fetchRate() {
+
       if (!from || !to) return;
+
       setLoadingRate(true);
 
       const data = await getRates(from);
@@ -70,13 +74,24 @@ export default function ExchangeModal({
     }
 
     fetchRate();
+
   }, [from, to]);
 
+  const swapCurrency = () => {
+
+    const temp = from;
+    setFrom(to);
+    setTo(temp);
+
+  };
+
   const handleChange = (e: any) => {
+
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+
   };
 
   const convertedAmount =
@@ -85,35 +100,55 @@ export default function ExchangeModal({
       : null;
 
   const handleSubmit = async (e: any) => {
+
     e.preventDefault();
 
     if (Number(captchaAnswer) !== num1 + num2) {
+
       setError("Incorrect answer. Please try again.");
       generateCaptcha();
       setCaptchaAnswer("");
       return;
+
     }
 
     try {
+
       setSubmitting(true);
       setShowError(false);
 
       const res = await fetch("/api/exchange", {
+
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, from, to, rate: liveRate }),
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          ...formData,
+          from,
+          to,
+          rate: liveRate,
+        }),
+
       });
 
       const data = await res.json();
 
       if (data.success) {
+
+        if (data.whatsapp) {
+          window.open(data.whatsapp, "_blank");
+        }
+
         setShowSuccess(true);
 
-        // Close modal after showing message
         setTimeout(() => {
           setShowSuccess(false);
           onClose();
         }, 2000);
+
       } else {
         setShowError(true);
       }
@@ -132,23 +167,21 @@ export default function ExchangeModal({
 
   return (
     <>
-      {/* SUCCESS MESSAGE */}
       {showSuccess && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[999] bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg text-sm sm:text-base">
-          ✅ We'll get back to you soon!
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[999] bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg text-sm">
+          ✅ Request prepared! WhatsApp opened to send it.
         </div>
       )}
 
-      {/* ERROR MESSAGE */}
       {showError && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[999] bg-red-600 text-white px-6 py-3 rounded-xl shadow-lg text-sm sm:text-base">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[999] bg-red-600 text-white px-6 py-3 rounded-xl shadow-lg text-sm">
           ❌ Something went wrong. Please try again.
         </div>
       )}
 
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
 
-        <div className="bg-white rounded-2xl w-full max-w-lg p-5 sm:p-8 relative max-h-[95vh] overflow-y-auto">
+        <div className="bg-white rounded-2xl w-full max-w-lg p-6 relative max-h-[95vh] overflow-y-auto">
 
           <button
             onClick={onClose}
@@ -157,7 +190,7 @@ export default function ExchangeModal({
             ✕
           </button>
 
-          <h3 className="text-xl sm:text-2xl font-bold mb-5 text-center">
+          <h3 className="text-xl font-bold mb-4 text-center">
             Currency Exchange Request
           </h3>
 
@@ -169,7 +202,7 @@ export default function ExchangeModal({
               placeholder="Full Name"
               required
               onChange={handleChange}
-              className="w-full border rounded-lg p-3 text-sm sm:text-base"
+              className="w-full border rounded-lg p-3"
             />
 
             <input
@@ -178,7 +211,7 @@ export default function ExchangeModal({
               placeholder="Email"
               required
               onChange={handleChange}
-              className="w-full border rounded-lg p-3 text-sm sm:text-base"
+              className="w-full border rounded-lg p-3"
             />
 
             <input
@@ -187,26 +220,41 @@ export default function ExchangeModal({
               placeholder="Mobile Number"
               required
               onChange={handleChange}
-              className="w-full border rounded-lg p-3 text-sm sm:text-base"
+              className="w-full border rounded-lg p-3"
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Select
-                options={options}
-                value={options.find(o => o.value === from)}
-                onChange={(selected: any) => setFrom(selected?.value)}
-                isSearchable
-              />
+            {/* Currency Select With Center Swap */}
+            <div className="flex items-center gap-2">
 
-              <Select
-                options={options}
-                value={options.find(o => o.value === to)}
-                onChange={(selected: any) => setTo(selected?.value)}
-                isSearchable
-              />
+              <div className="flex-1">
+                <Select
+                  options={options}
+                  value={options.find(o => o.value === from)}
+                  onChange={(selected: any) => setFrom(selected?.value)}
+                  isSearchable
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={swapCurrency}
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 transition"
+              >
+                ⇄
+              </button>
+
+              <div className="flex-1">
+                <Select
+                  options={options}
+                  value={options.find(o => o.value === to)}
+                  onChange={(selected: any) => setTo(selected?.value)}
+                  isSearchable
+                />
+              </div>
+
             </div>
 
-            <div className="bg-gray-100 p-3 rounded-lg text-xs sm:text-sm">
+            <div className="bg-gray-100 p-3 rounded-lg text-sm">
               {loadingRate
                 ? "Fetching live rate..."
                 : liveRate
@@ -241,6 +289,7 @@ export default function ExchangeModal({
               <p className="text-sm mb-1">
                 Verify: {num1} + {num2} = ?
               </p>
+
               <input
                 type="number"
                 value={captchaAnswer}
@@ -248,20 +297,26 @@ export default function ExchangeModal({
                 required
                 className="w-full border rounded-lg p-3"
               />
+
               {error && (
                 <p className="text-red-500 text-xs mt-1">{error}</p>
               )}
             </div>
 
+            <p className="text-xs text-gray-500 text-center">
+              After submitting, WhatsApp will open to send your request.
+            </p>
+
             <button
               type="submit"
               disabled={submitting}
-              className="w-full bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition disabled:opacity-60"
+              className="w-full bg-green-600 text-white py-3 rounded-xl hover:bg-green-700 transition disabled:opacity-60"
             >
-              {submitting ? "Submitting..." : "Submit Request"}
+              {submitting ? "Opening WhatsApp..." : "Submit & Send via WhatsApp"}
             </button>
 
           </form>
+
         </div>
       </div>
     </>

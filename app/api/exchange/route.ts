@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
 
 export async function POST(req: Request) {
   try {
+
     const body = await req.json();
 
     const {
@@ -13,93 +13,80 @@ export async function POST(req: Request) {
       address,
       from,
       to,
-      rate,
+      rate
     } = body;
 
-    // =========================
-    // 1️⃣ Basic Validation
-    // =========================
-    if (
-      !name ||
-      !email ||
-      !mobile ||
-      !amount ||
-      !address ||
-      !from ||
-      !to ||
-      !rate
-    ) {
+    // validation
+    if (!name || !email || !mobile || !amount || !address || !from || !to || !rate) {
       return NextResponse.json(
-        { success: false, error: "All fields are required" },
+        { success: false, error: "Missing fields" },
         { status: 400 }
       );
     }
 
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.error("Email ENV missing");
-      return NextResponse.json(
-        { success: false, error: "Email configuration missing" },
-        { status: 500 }
-      );
-    }
-
-    // =========================
-    // 2️⃣ Create Transporter
-    // =========================
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    // =========================
-    // 3️⃣ Calculate Total
-    // =========================
+    // total calculate
     const total = (Number(amount) * Number(rate)).toFixed(2);
 
-    // =========================
-    // 4️⃣ Send Mail
-    // =========================
-    await transporter.sendMail({
-      from: `"Exchange Request" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER,
-      subject: "New Currency Exchange Request 💰",
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px;">
-          <h2>💱 New Exchange Request</h2>
-          <hr />
+    // ===============================
+    // 1️⃣ SAVE DATA TO GOOGLE SHEET
+    // ===============================
+    await fetch(
+      "https://script.google.com/macros/s/AKfycbwnpa1dnqbH_CUTnHzQYT-nFjVSTx-RRHev5p34rV7ULun_ncG_5fv6Udd5GRQT3Zml/exec",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          mobile,
+          amount,
+          address,
+          from,
+          to,
+          rate,
+          total
+        })
+      }
+    );
 
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Mobile:</strong> ${mobile}</p>
-          <p><strong>From:</strong> ${from}</p>
-          <p><strong>To:</strong> ${to}</p>
-          <p><strong>Rate Applied:</strong> ${rate}</p>
-          <p><strong>Amount:</strong> ${amount}</p>
+    // ===============================
+    // 2️⃣ WHATSAPP MESSAGE
+    // ===============================
+    const message = `
+💱 Currency Exchange Request
 
-          <h3>💰 Total Conversion: ${total} ${to}</h3>
+Name: ${name}
+Email: ${email}
+Mobile: ${mobile}
 
-          <p><strong>Address:</strong> ${address}</p>
+From: ${from}
+To: ${to}
 
-          <hr />
-          <p style="font-size:12px;color:gray;">
-            This request was generated from your website.
-          </p>
-        </div>
-      `,
+Amount: ${amount}
+Rate: ${rate}
+
+Converted Amount: ${total} ${to}
+
+Address:
+${address}
+`;
+
+    const whatsappLink =
+      `https://wa.me/918969457707?text=${encodeURIComponent(message)}`;
+
+    return NextResponse.json({
+      success: true,
+      whatsapp: whatsappLink
     });
 
-    return NextResponse.json({ success: true });
-
   } catch (error) {
-    console.error("EMAIL ERROR:", error);
+
+    console.error("Exchange API Error:", error);
 
     return NextResponse.json(
-      { success: false, error: "Email failed to send" },
+      { success: false, error: "Server error" },
       { status: 500 }
     );
   }
