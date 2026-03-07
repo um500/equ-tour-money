@@ -40,13 +40,13 @@ export const homeToursQuery = `
 }
 `;
 
-
 // =============================
-// Currency Markup (NEW)
+// Currency Markup
 // =============================
 export const currencyMarkupQuery = `
 *[_type == "currencyMarkup" && isActive == true]{
   currencyCode,
-  markupValue
+  buyMarkup,
+  sellMarkup
 }
 `;

@@ -1,287 +1,385 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeftRight, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { currencyList } from "@/lib/currencyList";
 import CurrencySection from "@/components/sections/CurrencySection";
 
 export default function CurrencyPage() {
-  const [amount, setAmount] = useState(1000);
-  const [from, setFrom] = useState("USD");
-  const [to, setTo] = useState("INR");
-  const [rates, setRates] = useState<any>({});
+
+  const [tab, setTab] = useState<"buy" | "sell">("buy");
+
+  const [amount, setAmount] = useState<string>("");
+
+  const [from, setFrom] = useState<string>("INR");
+  const [to, setTo] = useState<string>("USD");
+
+  const [rates, setRates] = useState<Record<string, number>>({});
+  const [markups, setMarkups] = useState<Record<string, any>>({});
+
   const [converted, setConverted] = useState<number | null>(null);
+
   const [openFrom, setOpenFrom] = useState(false);
   const [openTo, setOpenTo] = useState(false);
+
   const [loading, setLoading] = useState(false);
 
   const fromRef = useRef<HTMLDivElement>(null);
   const toRef = useRef<HTMLDivElement>(null);
 
-  const selectedFrom = currencyList.find(c => c.code === from);
-  const selectedTo = currencyList.find(c => c.code === to);
+  const selectedFrom = currencyList.find((c) => c.code === from);
+  const selectedTo = currencyList.find((c) => c.code === to);
 
   const flagUrl = (code: string) =>
     `https://flagcdn.com/w40/${code}.png`;
 
-  // Close dropdown on outside click
+  /* ================= CLOSE DROPDOWN ================= */
+
   useEffect(() => {
+
     function handleClickOutside(e: MouseEvent) {
+
       if (fromRef.current && !fromRef.current.contains(e.target as Node)) {
         setOpenFrom(false);
       }
+
       if (toRef.current && !toRef.current.contains(e.target as Node)) {
         setOpenTo(false);
       }
+
     }
 
     document.addEventListener("mousedown", handleClickOutside);
+
     return () =>
       document.removeEventListener("mousedown", handleClickOutside);
+
   }, []);
 
-  // Fetch rates
-  useEffect(() => {
-  async function fetchRates() {
-    const res = await fetch(`/api/rates?from=${from}`);
-    const data = await res.json();
+  /* ================= FETCH API RATE + MARKUP ================= */
 
-    if (data.success) {
-      setRates(data.rates);
+  useEffect(() => {
+
+    async function fetchRates() {
+
+      const baseCurrency = tab === "buy" ? to : from;
+
+      try {
+
+        const res = await fetch(`/api/rates?from=${baseCurrency}`);
+        const data = await res.json();
+
+        if (data.success) {
+
+          setRates(data.rates);
+
+          if (data.markups) {
+            setMarkups(data.markups);
+          }
+
+        }
+
+      } catch (err) {
+
+        console.error("Rate fetch error", err);
+
+      }
+
     }
+
+    fetchRates();
+
+  }, [from, to, tab]);
+
+  /* ================= RATE CALCULATION ================= */
+
+  let finalRate = 0;
+
+  const baseRate = rates["INR"] || 0;
+
+  const selectedCurrency = tab === "buy" ? to : from;
+
+  const currencyMarkup = markups[selectedCurrency];
+
+  if (tab === "buy") {
+
+    finalRate = baseRate + (currencyMarkup?.buyMarkup || 0);
+
+  } else {
+
+    finalRate = baseRate - (currencyMarkup?.sellMarkup || 0);
+
   }
 
-  fetchRates();
-}, [from]);
+  /* ================= CONVERT ================= */
 
   const handleConvert = () => {
-    if (!rates[to]) return;
+
+    if (!finalRate || !amount) return;
 
     setLoading(true);
+
     setTimeout(() => {
-      setConverted(amount * rates[to]);
+
+      setConverted(Number(amount) * finalRate);
+
       setLoading(false);
-    }, 300);
+
+    }, 200);
+
   };
 
+  /* ================= AUTO UPDATE ================= */
+
+  useEffect(() => {
+
+    if (!finalRate || !amount) return;
+
+    setConverted(Number(amount) * finalRate);
+
+  }, [amount, finalRate]);
+
+  /* ================= TAB CHANGE ================= */
+
+  useEffect(() => {
+
+    if (tab === "buy") {
+
+      setFrom("INR");
+      setTo("USD");
+
+    } else {
+
+      setFrom("USD");
+      setTo("INR");
+
+    }
+
+    setConverted(null);
+
+  }, [tab]);
+
   return (
+
     <div className="min-h-screen bg-gradient-to-br from-[#0b1b5a] to-[#1e2f9f]">
 
-      {/* ================= HERO SECTION ================= */}
-      <section className="pt-28 md:pt-40 pb-16 md:pb-24 text-center px-4 sm:px-6 text-white">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 md:mb-6">
-          Real-Time Currency Converter
+      <section className="pt-32 pb-16 text-center text-white">
+
+        <h1 className="text-4xl font-bold mb-4">
+          Currency Exchange
         </h1>
-        <p className="text-blue-200 text-sm sm:text-base md:text-lg max-w-xl md:max-w-2xl mx-auto">
-          Instantly convert global currencies with live exchange rates.
-          Trusted and accurate conversion for travel & business.
+
+        <p className="text-blue-200">
+          Live currency conversion with real forex rates
         </p>
+
       </section>
 
-      {/* ================= CONVERTER SECTION ================= */}
-      <section className="px-4 sm:px-6 pb-16 md:pb-24 text-white">
-        <div className="max-w-4xl mx-auto backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl md:rounded-3xl p-6 sm:p-8 md:p-10 shadow-2xl">
+      <section className="px-6 pb-20">
 
-          {/* FROM / TO ROW */}
-          <div className="flex flex-col md:grid md:grid-cols-3 gap-6 md:gap-8 items-center">
+        <div className="max-w-3xl mx-auto bg-white rounded-xl p-8 shadow-xl border-2 border-orange-400">
 
-            {/* FROM */}
-            <div className="w-full relative" ref={fromRef}>
-              <label className="text-blue-200 text-sm">From</label>
+          <div className="flex border-b mb-6">
+
+            <button
+              onClick={() => setTab("buy")}
+              className={`flex-1 py-3 font-semibold ${
+                tab === "buy"
+                  ? "border-b-4 border-orange-400 text-blue-800"
+                  : "text-gray-500"
+              }`}
+            >
+              Buy Forex Cards & Currency
+            </button>
+
+            <button
+              onClick={() => setTab("sell")}
+              className={`flex-1 py-3 font-semibold ${
+                tab === "sell"
+                  ? "border-b-4 border-orange-400 text-blue-800"
+                  : "text-gray-500"
+              }`}
+            >
+              Sell Foreign Currency Notes
+            </button>
+
+          </div>
+
+          <select className="w-full border rounded-lg p-3 mb-6">
+            <option>Select City</option>
+            <option>Kolkata</option>
+            <option>Mumbai</option>
+            <option>Hyderabad</option>
+            <option>Other</option>
+          </select>
+
+          <div className="grid grid-cols-2 gap-4 mb-6">
+
+            <div ref={fromRef} className="relative">
+
+              <label className="text-sm text-gray-500">
+                Currency You Have
+              </label>
 
               <div
                 onClick={() => setOpenFrom(!openFrom)}
-                className="mt-2 bg-white/20 rounded-xl p-3 sm:p-4 flex justify-between items-center cursor-pointer"
+                className="mt-2 border rounded-lg p-3 flex justify-between cursor-pointer"
               >
-                <div className="flex items-center gap-2 sm:gap-3">
+
+                <div className="flex items-center gap-2">
+
                   <img
-                    src={flagUrl(selectedFrom!.countryCode)}
-                    className="w-5 h-4 sm:w-6 sm:h-4 rounded-sm"
+                    src={flagUrl(selectedFrom?.countryCode || "in")}
+                    className="w-5 h-4"
                   />
-                  <span className="text-sm sm:text-base">
-                    {selectedFrom?.code}
-                  </span>
+
+                  {selectedFrom?.code}
+
                 </div>
-                <ChevronDown size={16} />
+
+                <ChevronDown size={18} />
+
               </div>
 
               {openFrom && (
-                <div className="absolute z-50 mt-2 w-full bg-white text-black rounded-xl shadow-xl max-h-60 overflow-y-auto">
-                  {currencyList.map(currency => (
+
+                <div className="absolute z-50 bg-white border rounded-lg shadow-lg w-full mt-2 max-h-60 overflow-y-auto">
+
+                  {currencyList.map((currency) => (
+
                     <div
                       key={currency.code}
                       onClick={() => {
                         setFrom(currency.code);
                         setOpenFrom(false);
-                        setConverted(null);
                       }}
-                      className="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center gap-3 text-sm"
+                      className="p-3 hover:bg-gray-100 cursor-pointer flex gap-2"
                     >
+
                       <img
                         src={flagUrl(currency.countryCode)}
-                        className="w-5 h-4 rounded-sm"
+                        className="w-5 h-4"
                       />
-                      <span>{currency.code}</span>
-                      <span className="text-gray-500 text-xs sm:text-sm">
+
+                      {currency.code}
+
+                      <span className="text-gray-500 text-sm">
                         {currency.name}
                       </span>
+
                     </div>
+
                   ))}
+
                 </div>
+
               )}
+
             </div>
 
-            {/* SWAP */}
-            <div className="flex justify-center">
-              <button
-                onClick={() => {
-                  setFrom(to);
-                  setTo(from);
-                  setConverted(null);
-                }}
-                className="bg-white/20 hover:bg-white/30 p-3 sm:p-4 rounded-full transition"
-              >
-                <ArrowLeftRight size={18} />
-              </button>
-            </div>
+            <div ref={toRef} className="relative">
 
-            {/* TO */}
-            <div className="w-full relative" ref={toRef}>
-              <label className="text-blue-200 text-sm">To</label>
+              <label className="text-sm text-gray-500">
+                Currency You Want
+              </label>
 
               <div
                 onClick={() => setOpenTo(!openTo)}
-                className="mt-2 bg-white/20 rounded-xl p-3 sm:p-4 flex justify-between items-center cursor-pointer"
+                className="mt-2 border rounded-lg p-3 flex justify-between cursor-pointer"
               >
-                <div className="flex items-center gap-2 sm:gap-3">
+
+                <div className="flex items-center gap-2">
+
                   <img
-                    src={flagUrl(selectedTo!.countryCode)}
-                    className="w-5 h-4 sm:w-6 sm:h-4 rounded-sm"
+                    src={flagUrl(selectedTo?.countryCode || "us")}
+                    className="w-5 h-4"
                   />
-                  <span className="text-sm sm:text-base">
-                    {selectedTo?.code}
-                  </span>
+
+                  {selectedTo?.code}
+
                 </div>
-                <ChevronDown size={16} />
+
+                <ChevronDown size={18} />
+
               </div>
 
               {openTo && (
-                <div className="absolute z-50 mt-2 w-full bg-white text-black rounded-xl shadow-xl max-h-60 overflow-y-auto">
-                  {currencyList.map(currency => (
+
+                <div className="absolute z-50 bg-white border rounded-lg shadow-lg w-full mt-2 max-h-60 overflow-y-auto">
+
+                  {currencyList.map((currency) => (
+
                     <div
                       key={currency.code}
                       onClick={() => {
                         setTo(currency.code);
                         setOpenTo(false);
-                        setConverted(null);
                       }}
-                      className="px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center gap-3 text-sm"
+                      className="p-3 hover:bg-gray-100 cursor-pointer flex gap-2"
                     >
+
                       <img
                         src={flagUrl(currency.countryCode)}
-                        className="w-5 h-4 rounded-sm"
+                        className="w-5 h-4"
                       />
-                      <span>{currency.code}</span>
-                      <span className="text-gray-500 text-xs sm:text-sm">
+
+                      {currency.code}
+
+                      <span className="text-gray-500 text-sm">
                         {currency.name}
                       </span>
+
                     </div>
+
                   ))}
+
                 </div>
+
               )}
+
             </div>
 
           </div>
 
-          {/* AMOUNT */}
-          <div className="mt-6 md:mt-8">
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => {
-                setAmount(Number(e.target.value));
-                setConverted(null);
-              }}
-              className="w-full bg-white/20 p-3 sm:p-4 rounded-xl text-sm sm:text-lg focus:outline-none"
-            />
+          <input
+            type="number"
+            placeholder="Forex Amount"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="w-full border rounded-lg p-3 mb-4"
+          />
+
+          <div className="text-sm text-gray-500 mb-4">
+            Rate = <span className="font-semibold">₹ {finalRate.toFixed(4)}</span>
           </div>
 
-          {/* BUTTON */}
-          <div className="mt-6 md:mt-8">
-            <button
-              onClick={handleConvert}
-              disabled={loading}
-              className="w-full md:w-auto md:px-12 bg-gradient-to-r from-blue-500 to-indigo-600 py-3 sm:py-4 rounded-xl md:rounded-2xl font-semibold shadow-lg hover:scale-105 transition duration-300 disabled:opacity-50"
-            >
-              {loading ? "Converting..." : "Convert"}
-            </button>
-          </div>
+          <button
+            onClick={handleConvert}
+            disabled={loading}
+            className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold"
+          >
+            {loading ? "Calculating..." : "Convert"}
+          </button>
 
-          {/* RESULT */}
           {converted !== null && (
-            <div className="mt-8 border-t border-white/20 pt-6 text-sm sm:text-base">
-              <div className="font-bold text-lg sm:text-2xl">
-                {amount} {from} = {converted.toFixed(4)} {to}
-              </div>
-              <p className="text-blue-200 mt-2 text-xs sm:text-sm">
-                Mid-market rate • {new Date().toLocaleTimeString()}
-              </p>
+
+            <div className="mt-6 border-t pt-4">
+
+              <h2 className="text-xl font-bold">
+                Total Amount = ₹ {converted.toFixed(2)}
+              </h2>
+
             </div>
+
           )}
 
         </div>
+
       </section>
 
-      {/* EXTRA SECTION */}
       <CurrencySection />
 
-      {/* INFO SECTION */}
-     
-<section className="bg-white py-16 md:py-20 px-4 sm:px-6">
-  <div className="max-w-6xl mx-auto grid gap-8 md:grid-cols-3">
-
-    {/* CARD 1 */}
-    <div className="bg-gray-50 rounded-2xl p-8 text-center shadow-md hover:shadow-xl transition duration-300 hover:-translate-y-2">
-      <div className="w-14 h-14 mx-auto mb-5 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 text-2xl">
-        💱
-      </div>
-      <h3 className="text-xl font-semibold mb-3 text-gray-800">
-        Live Rates
-      </h3>
-      <p className="text-gray-600 text-sm md:text-base">
-        Updated exchange rates in real time using trusted APIs.
-      </p>
     </div>
 
-    {/* CARD 2 */}
-    <div className="bg-gray-50 rounded-2xl p-8 text-center shadow-md hover:shadow-xl transition duration-300 hover:-translate-y-2">
-      <div className="w-14 h-14 mx-auto mb-5 flex items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-2xl">
-        🌍
-      </div>
-      <h3 className="text-xl font-semibold mb-3 text-gray-800">
-        Global Coverage
-      </h3>
-      <p className="text-gray-600 text-sm md:text-base">
-        Convert 100+ international currencies worldwide.
-      </p>
-    </div>
-
-    {/* CARD 3 */}
-    <div className="bg-gray-50 rounded-2xl p-8 text-center shadow-md hover:shadow-xl transition duration-300 hover:-translate-y-2">
-      <div className="w-14 h-14 mx-auto mb-5 flex items-center justify-center rounded-full bg-green-100 text-green-600 text-2xl">
-        🔒
-      </div>
-      <h3 className="text-xl font-semibold mb-3 text-gray-800">
-        Secure & Reliable
-      </h3>
-      <p className="text-gray-600 text-sm md:text-base">
-        Accurate and secure currency conversion experience.
-      </p>
-    </div>
-
-  </div>
-</section>
-
-    </div>
   );
 }

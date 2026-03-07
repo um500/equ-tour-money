@@ -23,7 +23,11 @@ export default function CurrencyRow({
   editMode,
 }: Props) {
 
-  const convertedValue = (rate * amount).toFixed(4);
+  /* ✅ ensure safe number */
+  const safeRate = Number(rate) || 0;
+  const safeAmount = Number(amount) || 0;
+
+  const convertedValue = (safeRate * safeAmount).toFixed(4);
 
   const [percentChange, setPercentChange] = useState<string>("0.00");
   const [openModal, setOpenModal] = useState(false);
@@ -84,7 +88,7 @@ export default function CurrencyRow({
               Connect
             </button>
 
-            {/* REMOVE BUTTON (Edit Mode) */}
+            {/* REMOVE BUTTON */}
             {editMode && (
               <button
                 onClick={onRemove}
@@ -103,8 +107,8 @@ export default function CurrencyRow({
       {openModal && (
         <ExchangeModal
           currency={currency}
-          rate={rate}
-          amount={amount}
+          rate={safeRate}
+          amount={safeAmount}
           onClose={() => setOpenModal(false)}
         />
       )}

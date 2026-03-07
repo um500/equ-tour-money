@@ -2,6 +2,7 @@
 
 export async function getRates(baseCurrency: string) {
   try {
+
     if (!baseCurrency) {
       throw new Error("Base currency missing");
     }
@@ -14,7 +15,6 @@ export async function getRates(baseCurrency: string) {
       }
     );
 
-    // Parse JSON only once
     const data = await res.json();
 
     if (!res.ok) {
@@ -25,17 +25,21 @@ export async function getRates(baseCurrency: string) {
       success: true,
       base: data.base,
       rates: data.rates || {},
+      markups: data.markups || {},   // ⭐ IMPORTANT FIX
       lastUpdated: data.lastUpdated || null,
     };
 
   } catch (error) {
+
     console.error("Rate Fetch Error:", error);
 
     return {
       success: false,
       base: null,
       rates: {},
+      markups: {},    // ⭐ IMPORTANT FIX
       lastUpdated: null,
     };
+
   }
 }
