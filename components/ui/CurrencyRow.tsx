@@ -8,14 +8,14 @@ interface Props {
   currency: CurrencyType;
   buyRate: number;
   sellRate: number;
-  amount: number;
+  amount?: number; // optional
 }
 
 export default function CurrencyRow({
   currency,
   buyRate,
   sellRate,
-  amount,
+  amount = 0,
 }: Props) {
 
   const [openModal, setOpenModal] = useState(false);
@@ -25,7 +25,7 @@ export default function CurrencyRow({
   const formattedBuy = `₹${buyRate.toFixed(2)}`;
   const formattedSell = `₹${sellRate.toFixed(2)}`;
 
-  /* MARKET RATE (MID VALUE) */
+  /* MARKET RATE */
 
   const marketRate = ((buyRate + sellRate) / 2).toFixed(2);
 
@@ -48,7 +48,6 @@ export default function CurrencyRow({
             />
 
             <div>
-
               <p className="font-medium text-gray-800">
                 {currency.name}
               </p>
@@ -57,12 +56,9 @@ export default function CurrencyRow({
                 {currency.code}
               </p>
 
-              {/* MARKET RATE INFO */}
-
               <p className="text-xs text-gray-400">
                 1 {currency.code} ≈ ₹{marketRate}
               </p>
-
             </div>
 
           </div>
@@ -79,7 +75,7 @@ export default function CurrencyRow({
             {formattedSell}
           </div>
 
-          {/* ACTION BUTTON */}
+          {/* BUTTON */}
 
           <div className="text-right">
 
@@ -99,7 +95,6 @@ export default function CurrencyRow({
       {/* MODAL */}
 
       {openModal && (
-
         <ExchangeModal
           currency={currency}
           buyRate={buyRate}
@@ -107,7 +102,6 @@ export default function CurrencyRow({
           amount={amount}
           onClose={() => setOpenModal(false)}
         />
-
       )}
 
     </>

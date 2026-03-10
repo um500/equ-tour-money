@@ -10,6 +10,7 @@ interface Props {
   currency: CurrencyType;
   buyRate: number;
   sellRate: number;
+  amount: number;
   onClose: () => void;
 }
 
