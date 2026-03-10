@@ -21,8 +21,8 @@ export default function NavbarClient({
       {/* ================= TOP BAR ================= */}
       <div className="bg-yellow-500 text-black text-xs sm:text-sm py-2">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex justify-between">
-          <span>📧 info@equatorialtours.com</span>
-          <span>📞 +91 98765 43210</span>
+          <span>📧 equatorialtoursnmoney@yahoo.com</span>
+          <span>📞 +91 8981139988</span>
         </div>
       </div>
 
@@ -38,7 +38,7 @@ export default function NavbarClient({
               </span>
 
               <span className="text-lg sm:text-xl font-serif font-semibold text-yellow-400 -mt-1">
-                Tours & Money Changer Pvt. Ltd.
+                Tours & Money Changers Pvt. Ltd.
               </span>
 
               <span className="text-[11px] text-gray-300 mt-1 tracking-wide">

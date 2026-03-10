@@ -3,32 +3,30 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { currencyList, CurrencyType } from "@/lib/currencyList";
-import { getRates } from "@/lib/currencyApi";
 
 const Select = dynamic(() => import("react-select"), { ssr: false });
 
 interface Props {
   currency: CurrencyType;
-  rate: number;
-  amount: number;
+  buyRate: number;
+  sellRate: number;
   onClose: () => void;
 }
 
 export default function ExchangeModal({
   currency,
-  rate,
-  amount,
+  buyRate,
+  sellRate,
   onClose,
 }: Props) {
 
-  const [from, setFrom] = useState<string>("USD");
-  const [to, setTo] = useState<string>(currency.code);
+  const [transactionType, setTransactionType] =
+    useState<"buy" | "sell">("buy");
 
-  const [liveRate, setLiveRate] = useState<number>(rate || 0);
-  const [loadingRate, setLoadingRate] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [showError, setShowError] = useState(false);
+  const [from, setFrom] = useState("INR");
+  const [to, setTo] = useState(currency.code);
+
+  const [liveRate, setLiveRate] = useState(buyRate);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -43,47 +41,43 @@ export default function ExchangeModal({
   const [captchaAnswer, setCaptchaAnswer] = useState("");
   const [error, setError] = useState("");
 
+  /* CAPTCHA */
+
   const generateCaptcha = () => {
+
     const a = Math.floor(Math.random() * 10) + 1;
     const b = Math.floor(Math.random() * 10) + 1;
+
     setNum1(a);
     setNum2(b);
+
   };
 
   useEffect(() => {
     generateCaptcha();
   }, []);
 
+  /* BUY / SELL LOGIC */
+
   useEffect(() => {
 
-    async function fetchRate() {
+    if (transactionType === "buy") {
 
-      if (!from || !to) return;
+      setFrom("INR");
+      setTo(currency.code);
+      setLiveRate(buyRate);
 
-      setLoadingRate(true);
+    } else {
 
-      const data = await getRates(from);
+      setFrom(currency.code);
+      setTo("INR");
+      setLiveRate(sellRate);
 
-      if (data.success && data.rates[to]) {
-        setLiveRate(data.rates[to]);
-      } else {
-        setLiveRate(0);
-      }
-
-      setLoadingRate(false);
     }
 
-    fetchRate();
+  }, [transactionType, currency.code, buyRate, sellRate]);
 
-  }, [from, to]);
-
-  const swapCurrency = () => {
-
-    const temp = from;
-    setFrom(to);
-    setTo(temp);
-
-  };
+  /* FORM CHANGE */
 
   const handleChange = (e: any) => {
 
@@ -94,10 +88,13 @@ export default function ExchangeModal({
 
   };
 
-  const convertedAmount =
-    formData.amount && liveRate
-      ? (Number(formData.amount) * liveRate).toFixed(2)
-      : null;
+  /* CONVERSION */
+
+  const convertedAmount = formData.amount
+    ? (Number(formData.amount) / liveRate).toFixed(2)
+    : null;
+
+  /* SUBMIT */
 
   const handleSubmit = async (e: any) => {
 
@@ -105,220 +102,247 @@ export default function ExchangeModal({
 
     if (Number(captchaAnswer) !== num1 + num2) {
 
-      setError("Incorrect answer. Please try again.");
+      setError("Incorrect answer");
       generateCaptcha();
       setCaptchaAnswer("");
       return;
 
     }
 
-    try {
+    const res = await fetch("/api/exchange", {
 
-      setSubmitting(true);
-      setShowError(false);
+      method: "POST",
 
-      const res = await fetch("/api/exchange", {
+      headers: {
+        "Content-Type": "application/json",
+      },
 
-        method: "POST",
+      body: JSON.stringify({
+        ...formData,
+        from,
+        to,
+        rate: liveRate,
+        type: transactionType,
+      }),
 
-        headers: {
-          "Content-Type": "application/json",
-        },
+    });
 
-        body: JSON.stringify({
-          ...formData,
-          from,
-          to,
-          rate: liveRate,
-        }),
+    const data = await res.json();
 
-      });
+    if (data.success && data.whatsapp) {
 
-      const data = await res.json();
+      window.open(data.whatsapp, "_blank");
+      onClose();
 
-      if (data.success) {
-
-        if (data.whatsapp) {
-          window.open(data.whatsapp, "_blank");
-        }
-
-        setShowSuccess(true);
-
-        setTimeout(() => {
-          setShowSuccess(false);
-          onClose();
-        }, 2000);
-
-      } else {
-        setShowError(true);
-      }
-
-    } catch {
-      setShowError(true);
     }
 
-    setSubmitting(false);
   };
 
-  const options = currencyList.map((currency) => ({
-    value: currency.code,
-    label: `${currency.code} - ${currency.name}`,
-  }));
+  /* DROPDOWN OPTIONS */
+
+  const currencyOptions = currencyList
+    .filter((c) => c.code !== "INR")
+    .map((c) => ({
+      value: c.code,
+      label: `${c.code} - ${c.name}`,
+    }));
 
   return (
-    <>
-      {showSuccess && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[999] bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg text-sm">
-          ✅ Request prepared! WhatsApp opened to send it.
-        </div>
-      )}
 
-      {showError && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[999] bg-red-600 text-white px-6 py-3 rounded-xl shadow-lg text-sm">
-          ❌ Something went wrong. Please try again.
-        </div>
-      )}
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
 
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-lg p-6 relative">
 
-        <div className="bg-white rounded-2xl w-full max-w-lg p-6 relative max-h-[95vh] overflow-y-auto">
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-gray-400 hover:text-red-500"
+        >
+          ✕
+        </button>
+
+        <h3 className="text-xl font-bold mb-4 text-center">
+          Currency Exchange Request
+        </h3>
+
+        {/* BUY SELL */}
+
+        <div className="flex gap-2 mb-4">
 
           <button
-            onClick={onClose}
-            className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-xl"
+            type="button"
+            onClick={() => setTransactionType("buy")}
+            className={`flex-1 py-2 rounded-lg ${
+              transactionType === "buy"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200"
+            }`}
           >
-            ✕
+            Buy Currency
           </button>
 
-          <h3 className="text-xl font-bold mb-4 text-center">
-            Currency Exchange Request
-          </h3>
+          <button
+            type="button"
+            onClick={() => setTransactionType("sell")}
+            className={`flex-1 py-2 rounded-lg ${
+              transactionType === "sell"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200"
+            }`}
+          >
+            Sell Currency
+          </button>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+        </div>
 
-            <input
-              type="text"
-              name="name"
-              placeholder="Full Name"
-              required
-              onChange={handleChange}
-              className="w-full border rounded-lg p-3"
-            />
+        <form onSubmit={handleSubmit} className="space-y-4">
 
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              required
-              onChange={handleChange}
-              className="w-full border rounded-lg p-3"
-            />
+          <input
+            type="text"
+            name="name"
+            placeholder="Full Name"
+            required
+            onChange={handleChange}
+            className="w-full border rounded-lg p-3"
+          />
 
-            <input
-              type="tel"
-              name="mobile"
-              placeholder="Mobile Number"
-              required
-              onChange={handleChange}
-              className="w-full border rounded-lg p-3"
-            />
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            required
+            onChange={handleChange}
+            className="w-full border rounded-lg p-3"
+          />
 
-            {/* Currency Select With Center Swap */}
-            <div className="flex items-center gap-2">
+          <input
+            type="tel"
+            name="mobile"
+            placeholder="Mobile Number"
+            required
+            onChange={handleChange}
+            className="w-full border rounded-lg p-3"
+          />
 
-              <div className="flex-1">
+          {/* CURRENCY SELECT */}
+
+          <div className="grid grid-cols-2 gap-3">
+
+            {/* FROM */}
+
+            <div>
+
+              {transactionType === "buy" ? (
+
+                <div className="border p-3 rounded-lg">
+                  INR - Indian Rupee
+                </div>
+
+              ) : (
+
                 <Select
-                  options={options}
-                  value={options.find(o => o.value === from)}
-                  onChange={(selected: any) => setFrom(selected?.value)}
-                  isSearchable
+                  options={currencyOptions}
+                  value={currencyOptions.find(
+                    (o) => o.value === from
+                  )}
+                  onChange={(s: any) => setFrom(s.value)}
                 />
-              </div>
 
-              <button
-                type="button"
-                onClick={swapCurrency}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 transition"
-              >
-                ⇄
-              </button>
-
-              <div className="flex-1">
-                <Select
-                  options={options}
-                  value={options.find(o => o.value === to)}
-                  onChange={(selected: any) => setTo(selected?.value)}
-                  isSearchable
-                />
-              </div>
+              )}
 
             </div>
 
-            <div className="bg-gray-100 p-3 rounded-lg text-sm">
-              {loadingRate
-                ? "Fetching live rate..."
-                : liveRate
-                ? `Live Rate: 1 ${from} = ${liveRate.toFixed(4)} ${to}`
-                : "Rate not available"}
+            {/* TO */}
+
+            <div>
+
+              {transactionType === "sell" ? (
+
+                <div className="border p-3 rounded-lg">
+                  INR - Indian Rupee
+                </div>
+
+              ) : (
+
+                <Select
+                  options={currencyOptions}
+                  value={currencyOptions.find(
+                    (o) => o.value === to
+                  )}
+                  onChange={(s: any) => setTo(s.value)}
+                />
+
+              )}
+
             </div>
+
+          </div>
+
+          {/* LIVE RATE */}
+
+          <div className="bg-gray-100 p-3 rounded-lg text-sm">
+
+            {transactionType === "buy"
+              ? `Live Rate: 1 ${currency.code} = ₹${buyRate.toFixed(2)}`
+              : `Live Rate: 1 ${currency.code} = ₹${sellRate.toFixed(2)}`}
+
+          </div>
+
+          <input
+            type="number"
+            name="amount"
+            placeholder="How Much Forex Amount you want ?"
+            required
+            onChange={handleChange}
+            className="w-full border rounded-lg p-3"
+          />
+
+         
+
+          <textarea
+            name="address"
+            placeholder="Address"
+            required
+            onChange={handleChange}
+            className="w-full border rounded-lg p-3"
+          />
+
+          {/* CAPTCHA */}
+
+          <div>
+
+            <p className="text-sm mb-1">
+              Verify: {num1} + {num2} = ?
+            </p>
 
             <input
               type="number"
-              name="amount"
-              placeholder="Amount to Convert"
+              value={captchaAnswer}
+              onChange={(e) => setCaptchaAnswer(e.target.value)}
               required
-              onChange={handleChange}
               className="w-full border rounded-lg p-3"
             />
 
-            {convertedAmount && (
-              <div className="bg-green-100 p-3 rounded-lg text-sm">
-                Converted: {convertedAmount} {to}
-              </div>
+            {error && (
+              <p className="text-red-500 text-xs mt-1">
+                {error}
+              </p>
             )}
 
-            <textarea
-              name="address"
-              placeholder="Address"
-              required
-              onChange={handleChange}
-              className="w-full border rounded-lg p-3"
-            />
+          </div>
 
-            <div>
-              <p className="text-sm mb-1">
-                Verify: {num1} + {num2} = ?
-              </p>
+          <button
+  type="submit"
+  className="w-full bg-green-600 text-white py-3 rounded-xl cursor-pointer hover:bg-green-700 transition duration-300"
+>
+  Submit & Send via WhatsApp
+</button>
 
-              <input
-                type="number"
-                value={captchaAnswer}
-                onChange={(e) => setCaptchaAnswer(e.target.value)}
-                required
-                className="w-full border rounded-lg p-3"
-              />
+        </form>
 
-              {error && (
-                <p className="text-red-500 text-xs mt-1">{error}</p>
-              )}
-            </div>
-
-            <p className="text-xs text-gray-500 text-center">
-              After submitting, WhatsApp will open to send your request.
-            </p>
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full bg-green-600 text-white py-3 rounded-xl hover:bg-green-700 transition disabled:opacity-60"
-            >
-              {submitting ? "Opening WhatsApp..." : "Submit & Send via WhatsApp"}
-            </button>
-
-          </form>
-
-        </div>
       </div>
-    </>
+
+    </div>
+
   );
+
 }

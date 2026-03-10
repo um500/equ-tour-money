@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
+
   try {
 
     const body = await req.json();
@@ -13,61 +14,107 @@ export async function POST(req: Request) {
       address,
       from,
       to,
-      rate
+      rate,
+      type
     } = body;
 
-    // validation
-    if (!name || !email || !mobile || !amount || !address || !from || !to || !rate) {
+    /* =========================
+       VALIDATION
+    ========================== */
+
+    if (
+      !name ||
+      !email ||
+      !mobile ||
+      !amount ||
+      !address ||
+      !from ||
+      !to ||
+      !rate
+    ) {
+
       return NextResponse.json(
         { success: false, error: "Missing fields" },
         { status: 400 }
       );
+
     }
 
-    // total calculate
-    const total = (Number(amount) * Number(rate)).toFixed(2);
+    /* =========================
+       FORMAT RATE
+    ========================== */
 
-    // ===============================
-    // 1️⃣ SAVE DATA TO GOOGLE SHEET
-    // ===============================
-    await fetch(
-      "https://script.google.com/macros/s/AKfycbwnpa1dnqbH_CUTnHzQYT-nFjVSTx-RRHev5p34rV7ULun_ncG_5fv6Udd5GRQT3Zml/exec",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          mobile,
-          amount,
-          address,
-          from,
-          to,
-          rate,
-          total
-        })
-      }
-    );
+    const formattedRate = Number(rate).toFixed(3);
 
-    // ===============================
-    // 2️⃣ WHATSAPP MESSAGE
-    // ===============================
-    const message = `
-💱 Currency Exchange Request
+    /* =========================
+       CALCULATE CONVERTED VALUE
+    ========================== */
+
+    const convertedAmount =
+      (Number(amount) * Number(formattedRate)).toFixed(2);
+
+    /* =========================
+       TRANSACTION LABEL
+    ========================== */
+
+    const transactionLabel =
+      type === "buy"
+        ? "Buy Foreign Currency"
+        : "Sell Foreign Currency";
+
+    /* =========================
+       SAVE TO GOOGLE SHEET
+    ========================== */
+
+    try {
+
+      await fetch(
+        "https://script.google.com/macros/s/AKfycbwnpa1dnqbH_CUTnHzQYT-nFjVSTx-RRHev5p34rV7ULun_ncG_5fv6Udd5GRQT3Zml/exec",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            mobile,
+            amount,
+            address,
+            from,
+            to,
+            rate: formattedRate,
+            total: convertedAmount,
+            type: transactionLabel
+          })
+        }
+      );
+
+    } catch (sheetError) {
+
+      console.error("Google Sheet error:", sheetError);
+
+    }
+
+    /* =========================
+       WHATSAPP MESSAGE
+    ========================== */
+
+    const message = `💱 Currency Exchange Request
 
 Name: ${name}
 Email: ${email}
 Mobile: ${mobile}
 
+Transaction: ${transactionLabel}
+
 From: ${from}
 To: ${to}
 
-Amount: ${amount}
-Rate: ${rate}
+Forex Amount: ${amount} ${type === "buy" ? to : from}
+Rate: ${formattedRate}
 
-Converted Amount: ${total} ${to}
+Converted Amount: ₹${convertedAmount}
 
 Address:
 ${address}
@@ -75,7 +122,7 @@ ${address}
 
     const whatsappLink =
       `https://wa.me/918969457707?text=${encodeURIComponent(message)}`;
-
+//8981139988 - company
     return NextResponse.json({
       success: true,
       whatsapp: whatsappLink
@@ -89,5 +136,7 @@ ${address}
       { success: false, error: "Server error" },
       { status: 500 }
     );
+
   }
+
 }

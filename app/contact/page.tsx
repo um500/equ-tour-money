@@ -90,7 +90,7 @@ export default function ContactPage() {
 
           <div className="mt-6">
             <a
-              href="tel:+919876543210"
+              href="tel:+918981139988"
               className="inline-block bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-6 py-3 rounded-lg transition"
             >
               📞 Call Now
@@ -104,10 +104,11 @@ export default function ContactPage() {
 
         {/* LEFT INFO */}
         <div className="space-y-10">
+          <InfoBox icon={<MapPin />} title="Head Office Address" text="Shop no. 508, B-Wing, B/dg No-1, Royal Residency Chs, Vishrali Naka Panvel, Raigarh, Maharashtra 410 206" />
           <InfoBox icon={<MapPin />} title="Office Address" text="Kolkata, West Bengal, India" />
-          <InfoBox icon={<Phone />} title="Phone" text="+91 98765 43210" />
-          <InfoBox icon={<Mail />} title="Email" text="info@equatorialtours.com" />
-          <InfoBox icon={<Clock />} title="Working Hours" text="Mon – Sat: 9:00 AM – 6:00 PM" />
+          <InfoBox icon={<Phone />} title="Phone" text="+91 8981139988" />
+          <InfoBox icon={<Mail />} title="Email" text="equatorialtoursnmoney@yahoo.com" />
+          
 
           <div className="rounded-2xl overflow-hidden shadow-xl border-2 border-yellow-500">
             <iframe

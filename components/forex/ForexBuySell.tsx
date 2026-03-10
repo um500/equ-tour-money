@@ -1,207 +1,226 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { currencyList } from "@/lib/currencyList";
+import { getRates } from "@/lib/currencyApi";
 
 const cities = ["Kolkata", "Mumbai", "Hyderabad", "Other"];
 
 export default function ForexBuySell() {
 
-    const [tab, setTab] = useState<"buy" | "sell">("buy");
+  const [tab, setTab] = useState<"buy" | "sell">("buy");
 
-    const [city, setCity] = useState("");
+  const [city, setCity] = useState("");
 
-    const [from, setFrom] = useState("INR");
-    const [to, setTo] = useState("USD");
+  const [from, setFrom] = useState("INR");
+  const [to, setTo] = useState("USD");
 
-    const [forexAmount, setForexAmount] = useState("");
-    const [inrAmount, setInrAmount] = useState("");
+  const [forexAmount, setForexAmount] = useState("");
+  const [inrAmount, setInrAmount] = useState("");
 
-    const rate = 91.74;
+  const [rates, setRates] = useState<Record<string, number>>({});
 
-    function handleForexChange(value: string) {
+  const [rate, setRate] = useState(0);
 
-        setForexAmount(value);
+  /* FETCH RATES */
 
-        const total = Number(value) * rate;
+  useEffect(() => {
 
-        setInrAmount(total.toFixed(2));
+    async function fetchRates() {
+
+      const data = await getRates("INR");
+
+      if (!data || !data.success) return;
+
+      setRates(data.rates);
 
     }
 
-    return (
+    fetchRates();
 
-        <div className="max-w-3xl mx-auto bg-white border-2 border-orange-400 rounded-xl p-6">
+  }, []);
 
-            {/* TABS */}
+  /* UPDATE RATE WHEN CURRENCY CHANGES */
 
-            <div className="flex border-b mb-6">
+  useEffect(() => {
 
-                <button
-                    onClick={() => setTab("buy")}
-                    className={`flex-1 py-3 font-semibold ${tab === "buy" ? "border-b-4 border-orange-400 text-blue-800" : "text-gray-500"
-                        }`}
-                >
-                    Buy Forex Cards & Currency
-                </button>
+    if (!rates[to]) return;
 
-                <button
-                    onClick={() => setTab("sell")}
-                    className={`flex-1 py-3 font-semibold ${tab === "sell" ? "border-b-4 border-orange-400 text-blue-800" : "text-gray-500"
-                        }`}
-                >
-                    Sell Foreign Currency Notes
-                </button>
+    const calculatedRate = 1 / rates[to];
 
-            </div>
+    setRate(calculatedRate);
 
-            {/* CITY */}
+  }, [to, rates]);
 
-            <select
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="w-full border rounded-lg p-3 mb-4"
-            >
-                <option>Select City</option>
-                {cities.map(c => (
-                    <option key={c}>{c}</option>
-                ))}
-            </select>
+  /* CALCULATE TOTAL */
 
-            {/* CURRENCY ROW */}
+  function handleForexChange(value: string) {
 
-            <div className="grid grid-cols-2 gap-4 mb-4">
+    setForexAmount(value);
 
-                {/* YOU HAVE */}
+    const total = Number(value) * rate;
 
-                <div>
+    setInrAmount(total.toFixed(2));
 
-                    <label className="text-sm text-gray-600">
-                        Currency You Have
-                    </label>
+  }
 
-                    <select
-                        value={from}
-                        onChange={(e) => setFrom(e.target.value)}
-                        className="w-full border rounded-lg p-3 mt-1"
-                    >
+  return (
 
-                        {tab === "buy" ? (
+    <div className="max-w-3xl mx-auto bg-white border-2 border-orange-400 rounded-xl p-6">
 
-                            <option value="INR">INR - Indian Rupee</option>
+      {/* TABS */}
 
-                        ) : (
+      <div className="flex border-b mb-6">
 
-                            currencyList.map(c => (
-                                <option key={c.code} value={c.code}>
-                                    {c.code} - {c.name}
-                                </option>
-                            ))
+        <button
+          onClick={() => setTab("buy")}
+          className={`flex-1 py-3 font-semibold ${
+            tab === "buy"
+              ? "border-b-4 border-orange-400 text-blue-800"
+              : "text-gray-500"
+          }`}
+        >
+          Buy Forex Cards & Currency
+        </button>
 
-                        )}
+        <button
+          onClick={() => setTab("sell")}
+          className={`flex-1 py-3 font-semibold ${
+            tab === "sell"
+              ? "border-b-4 border-orange-400 text-blue-800"
+              : "text-gray-500"
+          }`}
+        >
+          Sell Foreign Currency Notes
+        </button>
 
-                    </select>
+      </div>
 
-                </div>
+      {/* CITY */}
 
-                {/* YOU WANT */}
+      <select
+        value={city}
+        onChange={(e) => setCity(e.target.value)}
+        className="w-full border rounded-lg p-3 mb-4"
+      >
+        <option>Select City</option>
 
-                <div>
+        {cities.map((c) => (
+          <option key={c}>{c}</option>
+        ))}
 
-                    <label className="text-sm text-gray-600">
-                        Currency You Want
-                    </label>
+      </select>
 
-                    <select
-                        value={to}
-                        onChange={(e) => setTo(e.target.value)}
-                        className="w-full border rounded-lg p-3 mt-1"
-                    >
+      {/* CURRENCY ROW */}
 
-                        {tab === "buy" ? (
+      <div className="grid grid-cols-2 gap-4 mb-4">
 
-                            currencyList.map(c => (
-                                <option key={c.code} value={c.code}>
-                                    {c.code} - {c.name}
-                                </option>
-                            ))
+        <div>
 
-                        ) : (
+          <label className="text-sm text-gray-600">
+            Currency You Have
+          </label>
 
-                            <option value="INR">INR - Indian Rupee</option>
+          <select
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+            className="w-full border rounded-lg p-3 mt-1"
+          >
 
-                        )}
+            {tab === "buy" ? (
+              <option value="INR">INR - Indian Rupee</option>
+            ) : (
+              currencyList.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.code} - {c.name}
+                </option>
+              ))
+            )}
 
-                    </select>
-
-                </div>
-
-            </div>
-
-            {/* CURRENCY NOTES */}
-
-            <div className="mb-4">
-
-                <select className="w-full border rounded-lg p-3">
-
-                    <option>Currency Notes</option>
-
-                </select>
-
-            </div>
-
-            {/* FOREX AMOUNT */}
-
-            <input
-                type="number"
-                placeholder="Forex Amount"
-                value={forexAmount}
-                onChange={(e) => handleForexChange(e.target.value)}
-                className="w-full border rounded-lg p-3 mb-4"
-            />
-
-            {/* RATE */}
-
-            <div className="flex justify-between items-center mb-4">
-
-                <span className="text-gray-500">
-                    Rate
-                </span>
-
-                <span className="font-semibold">
-                    ₹ {rate}
-                </span>
-
-            </div>
-
-            {/* INR AMOUNT */}
-
-            <input
-                type="text"
-                placeholder="INR Amount"
-                value={inrAmount}
-                readOnly
-                className="w-full border rounded-lg p-3 mb-4"
-            />
-
-            {/* TOTAL */}
-
-            <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg mb-4">
-
-                <span>Total Amount</span>
-
-                <span className="text-xl font-bold">
-                    ₹ {inrAmount || "0.00"}
-                </span>
-
-            </div>
-
-            <button className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold">
-                BOOK THIS ORDER →
-            </button>
+          </select>
 
         </div>
 
-    )
+        <div>
+
+          <label className="text-sm text-gray-600">
+            Currency You Want
+          </label>
+
+          <select
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            className="w-full border rounded-lg p-3 mt-1"
+          >
+
+            {tab === "buy" ? (
+              currencyList.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.code} - {c.name}
+                </option>
+              ))
+            ) : (
+              <option value="INR">INR - Indian Rupee</option>
+            )}
+
+          </select>
+
+        </div>
+
+      </div>
+
+      {/* FOREX AMOUNT */}
+
+      <input
+        type="number"
+        placeholder="Forex Amount"
+        value={forexAmount}
+        onChange={(e) => handleForexChange(e.target.value)}
+        className="w-full border rounded-lg p-3 mb-4"
+      />
+
+      {/* RATE */}
+
+      <div className="flex justify-between items-center mb-4">
+
+        <span className="text-gray-500">
+          Rate
+        </span>
+
+        <span className="font-semibold">
+          ₹ {rate.toFixed(4)}
+        </span>
+
+      </div>
+
+      {/* INR AMOUNT */}
+
+      <input
+        type="text"
+        placeholder="INR Amount"
+        value={inrAmount}
+        readOnly
+        className="w-full border rounded-lg p-3 mb-4"
+      />
+
+      {/* TOTAL */}
+
+      <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg mb-4">
+
+        <span>Total Amount</span>
+
+        <span className="text-xl font-bold">
+          ₹ {inrAmount || "0.00"}
+        </span>
+
+      </div>
+
+      <button className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold">
+        BOOK THIS ORDER →
+      </button>
+
+    </div>
+
+  );
 
 }

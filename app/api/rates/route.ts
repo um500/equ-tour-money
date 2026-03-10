@@ -7,19 +7,17 @@ export async function GET(req: NextRequest) {
   try {
 
     /* =========================
-       1️⃣ GET BASE CURRENCY
+       1️⃣ BASE CURRENCY
     ========================== */
 
     const { searchParams } = new URL(req.url);
     const from = searchParams.get("from")?.toUpperCase();
 
     if (!from) {
-
       return NextResponse.json(
-        { success:false, error:"Base currency required"},
-        { status:400 }
+        { success: false, error: "Base currency required" },
+        { status: 400 }
       );
-
     }
 
     /* =========================
@@ -28,55 +26,49 @@ export async function GET(req: NextRequest) {
 
     const res = await fetch(
       `https://open.er-api.com/v6/latest/${from}`,
-      { cache:"no-store" }
+      { cache: "no-store" }
     );
 
-    if(!res.ok){
-
+    if (!res.ok) {
       return NextResponse.json(
-        { success:false, error:"Exchange API failed"},
-        { status:500 }
+        { success: false, error: "Exchange API failed" },
+        { status: 500 }
       );
-
     }
 
     const data = await res.json();
 
-    if(data.result !== "success"){
-
+    if (data.result !== "success") {
       return NextResponse.json(
-        { success:false, error:"Invalid currency"},
-        { status:400 }
+        { success: false, error: "Invalid currency" },
+        { status: 400 }
       );
-
     }
 
-    const marketRates:Record<string,number> = data.rates || {};
+    const marketRates: Record<string, number> = data.rates || {};
 
     /* =========================
-       3️⃣ FETCH SANITY MARKUP
+       3️⃣ FETCH SANITY MARKUPS
     ========================== */
 
     const markupData = await sanityClient.fetch(currencyMarkupQuery);
 
-    const markupMap:Record<
+    const markups: Record<
       string,
-      { buyMarkup:number; sellMarkup:number }
+      { buyMarkup: number; sellMarkup: number }
     > = {};
 
-    if(Array.isArray(markupData)){
+    if (Array.isArray(markupData)) {
 
-      markupData.forEach((item:any)=>{
+      markupData.forEach((item: any) => {
 
         const code = item?.currencyCode?.toUpperCase();
 
-        if(!code) return;
+        if (!code) return;
 
-        markupMap[code] = {
-
+        markups[code] = {
           buyMarkup: Number(item.buyMarkup) || 0,
           sellMarkup: Number(item.sellMarkup) || 0
-
         };
 
       });
@@ -84,42 +76,29 @@ export async function GET(req: NextRequest) {
     }
 
     /* =========================
-       4️⃣ FINAL RATE MAP
-    ========================== */
-
-    const finalRates:Record<string,number> = {};
-
-    Object.entries(marketRates).forEach(([currency,rate])=>{
-
-      finalRates[currency] = Number(rate);
-
-    });
-
-    /* =========================
-       5️⃣ RETURN RESPONSE
+       4️⃣ FINAL RESPONSE
     ========================== */
 
     return NextResponse.json({
 
-      success:true,
-      base:data.base_code,
-      rates:finalRates,
-      markups:markupMap,
+      success: true,
+      base: data.base_code,
+      rates: marketRates,
+      markups: markups,
+
       lastUpdated:
         data.time_last_update_utc ||
         new Date().toISOString()
 
     });
 
-  }
+  } catch (error) {
 
-  catch(error){
-
-    console.error("Rates API Error:",error);
+    console.error("Rates API Error:", error);
 
     return NextResponse.json(
-      { success:false, error:"Internal server error"},
-      { status:500 }
+      { success: false, error: "Internal server error" },
+      { status: 500 }
     );
 
   }

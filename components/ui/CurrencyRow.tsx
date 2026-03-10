@@ -1,117 +1,115 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Sparklines, SparklinesLine } from "react-sparklines";
 import { CurrencyType } from "@/lib/currencyList";
-import { X } from "lucide-react";
+import { useState } from "react";
 import ExchangeModal from "@/components/ui/ExchangeModal";
 
 interface Props {
   currency: CurrencyType;
-  rate: number;
+  buyRate: number;
+  sellRate: number;
   amount: number;
-  onRemove: () => void;
-  baseCurrency: string;
-  editMode: boolean;
 }
 
 export default function CurrencyRow({
   currency,
-  rate,
+  buyRate,
+  sellRate,
   amount,
-  onRemove,
-  editMode,
 }: Props) {
 
-  /* ✅ ensure safe number */
-  const safeRate = Number(rate) || 0;
-  const safeAmount = Number(amount) || 0;
-
-  const convertedValue = (safeRate * safeAmount).toFixed(4);
-
-  const [percentChange, setPercentChange] = useState<string>("0.00");
   const [openModal, setOpenModal] = useState(false);
 
-  useEffect(() => {
-    const randomValue = (Math.random() * 0.8).toFixed(2);
-    setPercentChange(randomValue);
-  }, []);
+  /* FORMAT RATE */
+
+  const formattedBuy = `₹${buyRate.toFixed(2)}`;
+  const formattedSell = `₹${sellRate.toFixed(2)}`;
+
+  /* MARKET RATE (MID VALUE) */
+
+  const marketRate = ((buyRate + sellRate) / 2).toFixed(2);
 
   return (
     <>
-      <div className="bg-white rounded-2xl px-4 sm:px-6 py-4 shadow-sm hover:shadow-md transition">
+      {/* ROW CARD */}
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="bg-white rounded-2xl px-6 py-4 shadow-sm hover:shadow-md transition">
 
-          {/* LEFT SIDE */}
-          <div className="flex items-center gap-3 min-w-[180px]">
+        <div className="grid grid-cols-4 items-center">
+
+          {/* CURRENCY INFO */}
+
+          <div className="flex items-center gap-3">
+
             <img
               src={`https://flagcdn.com/w40/${currency.countryCode}.png`}
               className="w-8 h-8 rounded-full"
               alt={currency.code}
             />
+
             <div>
+
               <p className="font-medium text-gray-800">
                 {currency.name}
               </p>
+
               <p className="text-xs text-gray-500">
                 {currency.code}
               </p>
+
+              {/* MARKET RATE INFO */}
+
+              <p className="text-xs text-gray-400">
+                1 {currency.code} ≈ ₹{marketRate}
+              </p>
+
             </div>
+
           </div>
 
-          {/* RIGHT SIDE */}
-          <div className="flex items-center justify-between sm:justify-end gap-6 flex-1">
+          {/* BUY RATE */}
 
-            {/* Amount */}
-            <div className="text-sm sm:text-base font-semibold text-gray-800 min-w-[90px] text-left sm:text-right">
-              {convertedValue}
-            </div>
+          <div className="text-right font-semibold text-green-600">
+            {formattedBuy}
+          </div>
 
-            {/* Change */}
-            <span className="bg-green-100 text-green-600 px-3 py-1 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap">
-              +{percentChange}%
-            </span>
+          {/* SELL RATE */}
 
-            {/* Chart */}
-            <div className="w-20 sm:w-28 h-6">
-              <Sparklines data={[5, 10, 6, 12, 8, 15, 10]}>
-                <SparklinesLine color="#16a34a" />
-              </Sparklines>
-            </div>
+          <div className="text-right font-semibold text-red-600">
+            {formattedSell}
+          </div>
 
-            {/* CONNECT BUTTON */}
+          {/* ACTION BUTTON */}
+
+          <div className="text-right">
+
             <button
               onClick={() => setOpenModal(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition"
             >
               Connect
             </button>
 
-            {/* REMOVE BUTTON */}
-            {editMode && (
-              <button
-                onClick={onRemove}
-                className="w-8 h-8 flex items-center justify-center text-red-500 hover:text-red-700 transition"
-              >
-                <X size={18} />
-              </button>
-            )}
-
           </div>
 
         </div>
+
       </div>
 
       {/* MODAL */}
+
       {openModal && (
+
         <ExchangeModal
           currency={currency}
-          rate={safeRate}
-          amount={safeAmount}
+          buyRate={buyRate}
+          sellRate={sellRate}
+          amount={amount}
           onClose={() => setOpenModal(false)}
         />
+
       )}
+
     </>
   );
 }

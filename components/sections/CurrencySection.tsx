@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import { getRates } from "@/lib/currencyApi";
 import { currencyList } from "@/lib/currencyList";
 import CurrencyRow from "@/components/ui/CurrencyRow";
-import CurrencyDropdown from "@/components/ui/CurrencyDropdown";
 
 const Select = dynamic(() => import("react-select"), { ssr: false });
 
@@ -19,8 +18,8 @@ type RatesResponse = {
 
 export default function CurrencySection() {
 
-  const [baseCurrency, setBaseCurrency] = useState("USD");
-  const [amount, setAmount] = useState(1);
+  const baseCurrency = "INR";
+  const [amount] = useState(1);
 
   const [rates, setRates] = useState<Record<string, number>>({});
   const [markups, setMarkups] = useState<
@@ -28,54 +27,35 @@ export default function CurrencySection() {
   >({});
 
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
-  const [editMode, setEditMode] = useState(false);
 
   const [selectedCurrencies, setSelectedCurrencies] = useState([
+    "USD",
     "EUR",
-    "INR",
     "JPY",
     "RUB",
   ]);
 
-  /* ================= FETCH RATES ================= */
+  /* FETCH RATES */
 
   useEffect(() => {
 
     async function fetchData() {
 
-      try {
+      const data: RatesResponse = await getRates("INR");
 
-        const data: RatesResponse = await getRates(baseCurrency);
+      if (!data || !data.success) return;
 
-        if (!data || !data.success) return;
-
-        setRates(data.rates ?? {});
-        setMarkups(data.markups ?? {});
-        setLastUpdated(data.lastUpdated ?? null);
-
-      } catch (error) {
-
-        console.log("Rate fetch error:", error);
-
-      }
+      setRates(data.rates ?? {});
+      setMarkups(data.markups ?? {});
+      setLastUpdated(data.lastUpdated ?? null);
 
     }
 
     fetchData();
 
-  }, [baseCurrency]);
+  }, []);
 
-  /* ================= REMOVE ================= */
-
-  const handleRemoveCurrency = (code: string) => {
-
-    setSelectedCurrencies((prev) =>
-      prev.filter((c) => c !== code)
-    );
-
-  };
-
-  /* ================= ADD ================= */
+  /* ADD CURRENCY */
 
   const handleAddCurrency = (code: string) => {
 
@@ -89,6 +69,8 @@ export default function CurrencySection() {
     }
 
   };
+
+  /* DROPDOWN OPTIONS */
 
   const options = currencyList
     .filter(
@@ -107,79 +89,59 @@ export default function CurrencySection() {
 
     <section className="py-16 bg-[#f5f7fa]">
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="max-w-6xl mx-auto px-6">
 
-        {/* ===== HEADING ===== */}
+        <h2 className="text-4xl font-bold">
+          Live exchange rates
+        </h2>
 
-        <div className="mb-6">
+        <p className="text-gray-500 mt-2">
+          Compare 100+ currencies in real time
+        </p>
 
-          <h2 className="text-3xl sm:text-4xl font-bold">
-            Live exchange rates
-          </h2>
+        {/* TABLE HEADER */}
 
-          <p className="text-gray-500 mt-2 text-sm sm:text-base">
-            Compare 100+ currencies in real time & find the right moment to transfer funds
-          </p>
+        <div className="grid grid-cols-4 mt-8 text-sm text-gray-500 font-medium px-2">
 
-        </div>
-
-        {/* ===== HEADER ===== */}
-
-        <div className="flex items-center justify-between mb-4">
-
-          <div className="grid grid-cols-4 sm:grid-cols-5 items-center text-xs sm:text-sm text-gray-500 flex-1 px-2 sm:px-4">
-
-            <div className="col-span-1 sm:col-span-2">
-              Inverse
-            </div>
-
-            <div className="text-center sm:text-right">
-              Amount
-            </div>
-
-            <div className="text-center">
-              Change (24h)
-            </div>
-
-            <div className="text-center hidden sm:block">
-              Chart (24h)
-            </div>
-
-          </div>
-
-          <button
-            onClick={() => setEditMode(!editMode)}
-            className="ml-2 border border-blue-600 text-blue-600 px-3 sm:px-4 py-1 rounded-lg text-xs sm:text-sm hover:bg-blue-50 transition"
-          >
-            {editMode ? "Done" : "Edit"}
-          </button>
+          <div>Currency</div>
+          <div className="text-right">We Sell Rate</div>
+          <div className="text-right">We Buy Rate</div>
+          <div className="text-right">Action</div>
 
         </div>
 
-        {/* ===== BASE ROW ===== */}
+        {/* BASE ROW */}
 
-        <div className="bg-[#001a3d] text-white rounded-xl px-4 sm:px-6 py-4 flex justify-between items-center mb-4">
+        <div className="bg-[#001a3d] text-white rounded-xl px-6 py-4 flex justify-between items-center mt-4">
 
-          <div className="w-52 sm:w-72">
+          <div className="flex items-center gap-3">
 
-            <CurrencyDropdown
-              value={baseCurrency}
-              onChange={setBaseCurrency}
+            <img
+              src="https://flagcdn.com/w40/in.png"
+              className="w-8 h-8 rounded-full"
+              alt="INR"
             />
 
+            <div>
+              <p className="font-medium">Indian Rupee</p>
+              <p className="text-xs text-gray-300">INR</p>
+            </div>
+
           </div>
 
-          <div className="text-lg sm:text-xl font-bold">
+          <div className="text-xl font-bold">
             {amount}
           </div>
 
         </div>
 
-        {/* ===== CURRENCY ROWS ===== */}
+        {/* CURRENCY ROWS */}
 
-        <div className="space-y-3">
+        <div className="space-y-3 mt-4">
 
           {selectedCurrencies.map((code) => {
+
+            if (code === "INR") return null;
 
             const currency = currencyList.find(
               (c) => c.code === code
@@ -187,26 +149,30 @@ export default function CurrencySection() {
 
             if (!currency) return null;
 
-            /* ===== SAFE RATE ===== */
-
             const marketRate = Number(rates?.[code] ?? 0);
+
+            if (!marketRate) return null;
+
+            /* CONVERT TO INR */
+
+            const inrRate = 1 / marketRate;
 
             const markup = markups?.[code];
 
             const buyMarkup = Number(markup?.buyMarkup ?? 0);
+            const sellMarkup = Number(markup?.sellMarkup ?? 0);
 
-            const finalRate = marketRate + buyMarkup;
+            const buyRate = inrRate + buyMarkup;
+            const sellRate = inrRate - sellMarkup;
 
             return (
 
               <CurrencyRow
                 key={code}
                 currency={currency}
-                rate={finalRate}
+                buyRate={buyRate}
+                sellRate={sellRate}
                 amount={amount}
-                baseCurrency={baseCurrency}
-                editMode={editMode}
-                onRemove={() => handleRemoveCurrency(code)}
               />
 
             );
@@ -215,9 +181,9 @@ export default function CurrencySection() {
 
         </div>
 
-        {/* ===== ADD CURRENCY ===== */}
+        {/* ADD CURRENCY */}
 
-        <div className="mt-6 w-full sm:w-72">
+        <div className="mt-6 w-72">
 
           <Select
             options={options}
@@ -226,20 +192,15 @@ export default function CurrencySection() {
               handleAddCurrency(selected?.value)
             }
             isSearchable
-            isClearable
           />
 
         </div>
 
-        {/* ===== LAST UPDATED ===== */}
+        {/* LAST UPDATED */}
 
         {lastUpdated && (
 
-          <div className="flex flex-col sm:flex-row justify-end items-center mt-6 text-sm text-gray-500 gap-3">
-
-            <div className="w-10 h-10 border-2 border-blue-600 rounded-full flex items-center justify-center text-blue-600 font-semibold">
-              60
-            </div>
+          <div className="flex justify-end mt-6 text-sm text-gray-500">
 
             Last updated {lastUpdated}
 
