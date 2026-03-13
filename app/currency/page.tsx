@@ -4,11 +4,11 @@ import { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { currencyList } from "@/lib/currencyList";
 import CurrencySection from "@/components/sections/CurrencySection";
+import CurrencySlide from "@/components/forex/currencyslide";
 
 export default function CurrencyPage() {
 
   const [tab, setTab] = useState<"buy" | "sell">("buy");
-
   const [amount, setAmount] = useState<string>("");
 
   const [from, setFrom] = useState<string>("INR");
@@ -56,7 +56,7 @@ export default function CurrencyPage() {
 
   }, []);
 
-  /* ================= FETCH API RATE + MARKUP ================= */
+  /* ================= FETCH RATE ================= */
 
   useEffect(() => {
 
@@ -71,11 +71,8 @@ export default function CurrencyPage() {
 
         if (data.success) {
 
-          setRates(data.rates);
-
-          if (data.markups) {
-            setMarkups(data.markups);
-          }
+          setRates(data.rates || {});
+          setMarkups(data.markups || {});
 
         }
 
@@ -93,21 +90,25 @@ export default function CurrencyPage() {
 
   /* ================= RATE CALCULATION ================= */
 
-  let finalRate = 0;
+  let finalRate: number | null = null;
 
-  const baseRate = rates["INR"] || 0;
+  const baseRate = rates["INR"];
 
   const selectedCurrency = tab === "buy" ? to : from;
 
   const currencyMarkup = markups[selectedCurrency];
 
-  if (tab === "buy") {
+  if (baseRate) {
 
-    finalRate = baseRate + (currencyMarkup?.buyMarkup || 0);
+    if (tab === "buy") {
 
-  } else {
+      finalRate = baseRate + (currencyMarkup?.buyMarkup || 0);
 
-    finalRate = baseRate - (currencyMarkup?.sellMarkup || 0);
+    } else {
+
+      finalRate = baseRate - (currencyMarkup?.sellMarkup || 0);
+
+    }
 
   }
 
@@ -121,23 +122,12 @@ export default function CurrencyPage() {
 
     setTimeout(() => {
 
-      setConverted(Number(amount) * finalRate);
-
+      setConverted(Number(amount) * finalRate!);
       setLoading(false);
 
     }, 200);
 
   };
-
-  /* ================= AUTO UPDATE ================= */
-
-  useEffect(() => {
-
-    if (!finalRate || !amount) return;
-
-    setConverted(Number(amount) * finalRate);
-
-  }, [amount, finalRate]);
 
   /* ================= TAB CHANGE ================= */
 
@@ -179,6 +169,8 @@ export default function CurrencyPage() {
 
         <div className="max-w-3xl mx-auto bg-white rounded-xl p-8 shadow-xl border-2 border-orange-400">
 
+          {/* Tabs */}
+
           <div className="flex border-b mb-6">
 
             <button
@@ -205,15 +197,21 @@ export default function CurrencyPage() {
 
           </div>
 
+          {/* CITY */}
+
           <select className="w-full border rounded-lg p-3 mb-6">
             <option>Select City</option>
             <option>Kolkata</option>
             <option>Mumbai</option>
-            <option>Hyderabad</option>
-            <option>Other</option>
+            <option>Benglore</option>
+            <option>Agartala</option>
           </select>
 
+          {/* CURRENCY SELECT */}
+
           <div className="grid grid-cols-2 gap-4 mb-6">
+
+            {/* FROM */}
 
             <div ref={fromRef} className="relative">
 
@@ -222,8 +220,12 @@ export default function CurrencyPage() {
               </label>
 
               <div
-                onClick={() => setOpenFrom(!openFrom)}
-                className="mt-2 border rounded-lg p-3 flex justify-between cursor-pointer"
+                onClick={() => {
+                  if (tab === "sell") setOpenFrom(!openFrom);
+                }}
+                className={`mt-2 border rounded-lg p-3 flex justify-between ${
+                  tab === "buy" ? "cursor-not-allowed bg-gray-100" : "cursor-pointer"
+                }`}
               >
 
                 <div className="flex items-center gap-2">
@@ -237,45 +239,45 @@ export default function CurrencyPage() {
 
                 </div>
 
-                <ChevronDown size={18} />
+                {tab === "sell" && <ChevronDown size={18} />}
 
               </div>
 
-              {openFrom && (
+              {openFrom && tab === "sell" && (
 
-                <div className="absolute z-50 bg-white border rounded-lg shadow-lg w-full mt-2 max-h-60 overflow-y-auto">
+                <div className="absolute w-full bg-white border rounded-lg mt-1 max-h-60 overflow-y-auto z-50">
 
-                  {currencyList.map((currency) => (
+                  {currencyList
+                    .filter((c) => c.code !== "INR")
+                    .map((c) => (
 
-                    <div
-                      key={currency.code}
-                      onClick={() => {
-                        setFrom(currency.code);
-                        setOpenFrom(false);
-                      }}
-                      className="p-3 hover:bg-gray-100 cursor-pointer flex gap-2"
-                    >
+                      <div
+                        key={c.code}
+                        onClick={() => {
+                          setFrom(c.code);
+                          setOpenFrom(false);
+                        }}
+                        className="p-3 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                      >
 
-                      <img
-                        src={flagUrl(currency.countryCode)}
-                        className="w-5 h-4"
-                      />
+                        <img
+                          src={flagUrl(c.countryCode)}
+                          className="w-5 h-4"
+                        />
 
-                      {currency.code}
+                        {c.code}
 
-                      <span className="text-gray-500 text-sm">
-                        {currency.name}
-                      </span>
+                      </div>
 
-                    </div>
-
-                  ))}
+                    ))}
 
                 </div>
 
               )}
 
             </div>
+
+            {/* TO */}
 
             <div ref={toRef} className="relative">
 
@@ -284,8 +286,12 @@ export default function CurrencyPage() {
               </label>
 
               <div
-                onClick={() => setOpenTo(!openTo)}
-                className="mt-2 border rounded-lg p-3 flex justify-between cursor-pointer"
+                onClick={() => {
+                  if (tab === "buy") setOpenTo(!openTo);
+                }}
+                className={`mt-2 border rounded-lg p-3 flex justify-between ${
+                  tab === "sell" ? "cursor-not-allowed bg-gray-100" : "cursor-pointer"
+                }`}
               >
 
                 <div className="flex items-center gap-2">
@@ -299,39 +305,37 @@ export default function CurrencyPage() {
 
                 </div>
 
-                <ChevronDown size={18} />
+                {tab === "buy" && <ChevronDown size={18} />}
 
               </div>
 
-              {openTo && (
+              {openTo && tab === "buy" && (
 
-                <div className="absolute z-50 bg-white border rounded-lg shadow-lg w-full mt-2 max-h-60 overflow-y-auto">
+                <div className="absolute w-full bg-white border rounded-lg mt-1 max-h-60 overflow-y-auto z-50">
 
-                  {currencyList.map((currency) => (
+                  {currencyList
+                    .filter((c) => c.code !== "INR")
+                    .map((c) => (
 
-                    <div
-                      key={currency.code}
-                      onClick={() => {
-                        setTo(currency.code);
-                        setOpenTo(false);
-                      }}
-                      className="p-3 hover:bg-gray-100 cursor-pointer flex gap-2"
-                    >
+                      <div
+                        key={c.code}
+                        onClick={() => {
+                          setTo(c.code);
+                          setOpenTo(false);
+                        }}
+                        className="p-3 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                      >
 
-                      <img
-                        src={flagUrl(currency.countryCode)}
-                        className="w-5 h-4"
-                      />
+                        <img
+                          src={flagUrl(c.countryCode)}
+                          className="w-5 h-4"
+                        />
 
-                      {currency.code}
+                        {c.code}
 
-                      <span className="text-gray-500 text-sm">
-                        {currency.name}
-                      </span>
+                      </div>
 
-                    </div>
-
-                  ))}
+                    ))}
 
                 </div>
 
@@ -341,6 +345,8 @@ export default function CurrencyPage() {
 
           </div>
 
+          {/* AMOUNT */}
+
           <input
             type="number"
             placeholder="Forex Amount"
@@ -349,13 +355,17 @@ export default function CurrencyPage() {
             className="w-full border rounded-lg p-3 mb-4"
           />
 
-          <div className="text-sm text-gray-500 mb-4">
-            Rate = <span className="font-semibold">₹ {finalRate.toFixed(4)}</span>
-          </div>
+          {finalRate && (
+
+            <div className="text-sm text-gray-500 mb-4">
+              Rate = ₹ {finalRate.toFixed(4)}
+            </div>
+
+          )}
 
           <button
             onClick={handleConvert}
-            disabled={loading}
+            disabled={loading || !finalRate}
             className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold"
           >
             {loading ? "Calculating..." : "Convert"}
@@ -377,9 +387,16 @@ export default function CurrencyPage() {
 
       </section>
 
-      <CurrencySection />
+      <div className="relative -mt-16 mb-10 z-20">
+        <CurrencySlide />
+      </div>
+
+      <section className="bg-gray-100 pt-20 pb-20">
+        <CurrencySection />
+      </section>
 
     </div>
 
   );
+
 }

@@ -2,7 +2,9 @@
 // India States (reference-based filtering)
 // =============================
 export const indiaStatesQuery = `
-*[_type == "state" && country->type == "india"] | order(name asc) {
+*[_type == "state" && country->type == "india"] 
+| order(name asc) {
+  _id,
   name,
   "slug": slug.current
 }
@@ -13,10 +15,16 @@ export const indiaStatesQuery = `
 // International Countries
 // =============================
 export const internationalCountriesQuery = `
-*[_type == "country" && type == "international"] | order(name asc) {
+*[_type == "country" && type == "international"] 
+| order(name asc) {
+  _id,
   name,
   "slug": slug.current,
-  "states": *[_type == "state" && references(^._id)] | order(name asc) {
+
+  "states": *[
+    _type == "state" && references(^._id)
+  ] | order(name asc) {
+    _id,
     name,
     "slug": slug.current
   }
@@ -28,10 +36,11 @@ export const internationalCountriesQuery = `
 // Home Tours
 // =============================
 export const homeToursQuery = `
-*[_type == "tour"] | order(_createdAt desc){
+*[_type == "tour"]
+| order(_createdAt desc)[0...6] {
   _id,
   title,
-  slug,
+  "slug": slug.current,
   price,
   duration,
   shortDescription,
@@ -45,6 +54,7 @@ export const homeToursQuery = `
 // =============================
 export const currencyMarkupQuery = `
 *[_type == "currencyMarkup" && isActive == true]{
+  _id,
   currencyCode,
   buyMarkup,
   sellMarkup

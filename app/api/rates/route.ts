@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { sanityClient } from "@/lib/sanity.client";
 import { currencyMarkupQuery } from "@/lib/queries";
 
-export async function GET(req: NextRequest) {
+type MarkupType = {
+  buyMarkup: number;
+  sellMarkup: number;
+};
 
+export async function GET(req: NextRequest) {
   try {
 
     /* =========================
@@ -11,41 +15,43 @@ export async function GET(req: NextRequest) {
     ========================== */
 
     const { searchParams } = new URL(req.url);
-    const from = searchParams.get("from")?.toUpperCase();
-
-    if (!from) {
-      return NextResponse.json(
-        { success: false, error: "Base currency required" },
-        { status: 400 }
-      );
-    }
+    const from = searchParams.get("from")?.toUpperCase() || "INR";
 
     /* =========================
        2️⃣ FETCH MARKET RATES
     ========================== */
 
-    const res = await fetch(
+    const apiRes = await fetch(
       `https://open.er-api.com/v6/latest/${from}`,
-      { cache: "no-store" }
+      {
+        cache: "no-store",
+      }
     );
 
-    if (!res.ok) {
+    if (!apiRes.ok) {
       return NextResponse.json(
-        { success: false, error: "Exchange API failed" },
+        {
+          success: false,
+          error: "Exchange API request failed",
+        },
         { status: 500 }
       );
     }
 
-    const data = await res.json();
+    const apiData = await apiRes.json();
 
-    if (data.result !== "success") {
+    if (apiData.result !== "success") {
       return NextResponse.json(
-        { success: false, error: "Invalid currency" },
+        {
+          success: false,
+          error: "Invalid currency or API response",
+        },
         { status: 400 }
       );
     }
 
-    const marketRates: Record<string, number> = data.rates || {};
+    const marketRates: Record<string, number> =
+      apiData?.rates || {};
 
     /* =========================
        3️⃣ FETCH SANITY MARKUPS
@@ -53,10 +59,7 @@ export async function GET(req: NextRequest) {
 
     const markupData = await sanityClient.fetch(currencyMarkupQuery);
 
-    const markups: Record<
-      string,
-      { buyMarkup: number; sellMarkup: number }
-    > = {};
+    const markups: Record<string, MarkupType> = {};
 
     if (Array.isArray(markupData)) {
 
@@ -68,7 +71,7 @@ export async function GET(req: NextRequest) {
 
         markups[code] = {
           buyMarkup: Number(item.buyMarkup) || 0,
-          sellMarkup: Number(item.sellMarkup) || 0
+          sellMarkup: Number(item.sellMarkup) || 0,
         };
 
       });
@@ -80,16 +83,13 @@ export async function GET(req: NextRequest) {
     ========================== */
 
     return NextResponse.json({
-
       success: true,
-      base: data.base_code,
+      base: apiData.base_code,
       rates: marketRates,
-      markups: markups,
-
+      markups,
       lastUpdated:
-        data.time_last_update_utc ||
-        new Date().toISOString()
-
+        apiData.time_last_update_utc ||
+        new Date().toISOString(),
     });
 
   } catch (error) {
@@ -97,12 +97,14 @@ export async function GET(req: NextRequest) {
     console.error("Rates API Error:", error);
 
     return NextResponse.json(
-      { success: false, error: "Internal server error" },
+      {
+        success: false,
+        error: "Internal server error",
+      },
       { status: 500 }
     );
 
   }
-
 }
 
 // XE 

@@ -10,6 +10,7 @@ export async function POST(req: Request) {
       name,
       email,
       mobile,
+      city,
       amount,
       address,
       from,
@@ -26,6 +27,7 @@ export async function POST(req: Request) {
       !name ||
       !email ||
       !mobile ||
+      !city ||
       !amount ||
       !address ||
       !from ||
@@ -34,7 +36,7 @@ export async function POST(req: Request) {
     ) {
 
       return NextResponse.json(
-        { success: false, error: "Missing fields" },
+        { success: false, error: "Missing required fields" },
         { status: 400 }
       );
 
@@ -79,6 +81,7 @@ export async function POST(req: Request) {
             name,
             email,
             mobile,
+            city,
             amount,
             address,
             from,
@@ -105,6 +108,7 @@ export async function POST(req: Request) {
 Name: ${name}
 Email: ${email}
 Mobile: ${mobile}
+City: ${city}
 
 Transaction: ${transactionLabel}
 
@@ -121,8 +125,8 @@ ${address}
 `;
 
     const whatsappLink =
-      `https://wa.me/918969457707?text=${encodeURIComponent(message)}`;
-//8981139988 - company
+      `https://wa.me/918981139988?text=${encodeURIComponent(message)}`;
+
     return NextResponse.json({
       success: true,
       whatsapp: whatsappLink

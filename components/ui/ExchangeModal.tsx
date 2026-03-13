@@ -24,6 +24,8 @@ export default function ExchangeModal({
   const [transactionType, setTransactionType] =
     useState<"buy" | "sell">("buy");
 
+  const [city, setCity] = useState("");
+
   const [from, setFrom] = useState("INR");
   const [to, setTo] = useState(currency.code);
 
@@ -37,43 +39,18 @@ export default function ExchangeModal({
     address: "",
   });
 
-  const [num1, setNum1] = useState(0);
-  const [num2, setNum2] = useState(0);
-  const [captchaAnswer, setCaptchaAnswer] = useState("");
-  const [error, setError] = useState("");
-
-  /* CAPTCHA */
-
-  const generateCaptcha = () => {
-
-    const a = Math.floor(Math.random() * 10) + 1;
-    const b = Math.floor(Math.random() * 10) + 1;
-
-    setNum1(a);
-    setNum2(b);
-
-  };
-
-  useEffect(() => {
-    generateCaptcha();
-  }, []);
-
   /* BUY / SELL LOGIC */
 
   useEffect(() => {
 
     if (transactionType === "buy") {
-
       setFrom("INR");
       setTo(currency.code);
       setLiveRate(buyRate);
-
     } else {
-
       setFrom(currency.code);
       setTo("INR");
       setLiveRate(sellRate);
-
     }
 
   }, [transactionType, currency.code, buyRate, sellRate]);
@@ -89,26 +66,11 @@ export default function ExchangeModal({
 
   };
 
-  /* CONVERSION */
-
-  const convertedAmount = formData.amount
-    ? (Number(formData.amount) / liveRate).toFixed(2)
-    : null;
-
   /* SUBMIT */
 
   const handleSubmit = async (e: any) => {
 
     e.preventDefault();
-
-    if (Number(captchaAnswer) !== num1 + num2) {
-
-      setError("Incorrect answer");
-      generateCaptcha();
-      setCaptchaAnswer("");
-      return;
-
-    }
 
     const res = await fetch("/api/exchange", {
 
@@ -120,6 +82,7 @@ export default function ExchangeModal({
 
       body: JSON.stringify({
         ...formData,
+        city,
         from,
         to,
         rate: liveRate,
@@ -139,7 +102,7 @@ export default function ExchangeModal({
 
   };
 
-  /* DROPDOWN OPTIONS */
+  /* CURRENCY OPTIONS */
 
   const currencyOptions = currencyList
     .filter((c) => c.code !== "INR")
@@ -147,6 +110,13 @@ export default function ExchangeModal({
       value: c.code,
       label: `${c.code} - ${c.name}`,
     }));
+
+  const cities = [
+    { value: "Kolkata", label: "Kolkata" },
+    { value: "Mumbai", label: "Mumbai" },
+    { value: "Bengalore", label: "Bengalore" },
+    { value: "Agartala", label: "Agartala" },
+  ];
 
   return (
 
@@ -197,6 +167,16 @@ export default function ExchangeModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
 
+          {/* CITY */}
+
+          <Select
+            options={cities}
+            placeholder="Select City"
+            onChange={(s: any) => setCity(s.value)}
+          />
+
+          {/* NAME */}
+
           <input
             type="text"
             name="name"
@@ -206,6 +186,8 @@ export default function ExchangeModal({
             className="w-full border rounded-lg p-3"
           />
 
+          {/* EMAIL */}
+
           <input
             type="email"
             name="email"
@@ -214,6 +196,8 @@ export default function ExchangeModal({
             onChange={handleChange}
             className="w-full border rounded-lg p-3"
           />
+
+          {/* MOBILE */}
 
           <input
             type="tel"
@@ -288,6 +272,8 @@ export default function ExchangeModal({
 
           </div>
 
+          {/* AMOUNT */}
+
           <input
             type="number"
             name="amount"
@@ -297,7 +283,7 @@ export default function ExchangeModal({
             className="w-full border rounded-lg p-3"
           />
 
-         
+          {/* ADDRESS */}
 
           <textarea
             name="address"
@@ -307,36 +293,14 @@ export default function ExchangeModal({
             className="w-full border rounded-lg p-3"
           />
 
-          {/* CAPTCHA */}
-
-          <div>
-
-            <p className="text-sm mb-1">
-              Verify: {num1} + {num2} = ?
-            </p>
-
-            <input
-              type="number"
-              value={captchaAnswer}
-              onChange={(e) => setCaptchaAnswer(e.target.value)}
-              required
-              className="w-full border rounded-lg p-3"
-            />
-
-            {error && (
-              <p className="text-red-500 text-xs mt-1">
-                {error}
-              </p>
-            )}
-
-          </div>
+          {/* SUBMIT */}
 
           <button
-  type="submit"
-  className="w-full bg-green-600 text-white py-3 rounded-xl cursor-pointer hover:bg-green-700 transition duration-300"
->
-  Submit & Send via WhatsApp
-</button>
+            type="submit"
+            className="w-full bg-green-600 text-white py-3 rounded-xl cursor-pointer hover:bg-green-700 transition duration-300"
+          >
+            Submit & Send via WhatsApp
+          </button>
 
         </form>
 
