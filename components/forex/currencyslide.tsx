@@ -132,7 +132,7 @@ export default function CurrencySlide() {
 
   return (
 
-    <div className="relative max-w-7xl mx-auto mt-16">
+    <div className="relative max-w-7xl mx-auto mt-4">
 
       {/* BUTTONS */}
 

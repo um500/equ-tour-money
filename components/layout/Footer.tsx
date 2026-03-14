@@ -32,7 +32,7 @@ export default function Footer() {
           </h3>
           <ul className="space-y-2 text-sm text-gray-300">
             <li><Link href="/" className="hover:text-yellow-400">Home</Link></li>
-            <li><Link href="/packages" className="hover:text-yellow-400">Tours</Link></li>
+            {/* <li><Link href="/packages" className="hover:text-yellow-400">Tours</Link></li> */}
             <li><Link href="/currency" className="hover:text-yellow-400">Money Exchange</Link></li>
             <li><Link href="/about" className="hover:text-yellow-400">About Us</Link></li>
             <li><Link href="/contact" className="hover:text-yellow-400">Contact</Link></li>

@@ -56,9 +56,9 @@ export default function TermsAndConditionsPage() {
           <section>
             <h2 className="text-xl font-semibold mb-2">6. Contact Information</h2>
             <p>
-              📧 info@equatorialtours.com
+              📧 equatorialtoursnmoney@yahoo.com
               <br />
-              📞 +91 98765 43210
+              📞 +91 8981139988
             </p>
           </section>
 

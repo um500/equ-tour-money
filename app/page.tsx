@@ -1,26 +1,30 @@
+import { sanityClient } from "@/lib/sanity.client";
+import { heroQuery } from "@/lib/queries";
+
 import Hero from "@/components/sections/Hero";
+import CurrencySlide from "@/components/forex/currencyslide";
+import HomeAbout from "@/components/sections/HomeAbout";
 import CurrencySection from "@/components/sections/CurrencySection";
-import HomeTours from "@/components/sections/HomeTours";
 import Testimonials from "@/components/sections/Testimonials";
 
+export default async function Home() {
 
-export default function Home() {
+  const slides = await sanityClient.fetch(heroQuery);
+
   return (
     <main>
-      {/* Hero Section */}
-      <Hero />
 
-      {/* Live Exchange Rates */}
+      <Hero slides={slides} />
+
+      <section className="bg-[#001A3D] py-10">
+        <CurrencySlide />
+      </section>
+
+      <HomeAbout />
+
       <CurrencySection />
 
-      {/* Trending + Popular Tours */}
-      <HomeTours />
-
-      {/* Testimonials */}
       <Testimonials />
-
-     
-
 
     </main>
   );

@@ -60,9 +60,9 @@ export default function PrivacyPolicyPage() {
             <p>
               For any privacy-related concerns, contact us at:
               <br />
-              📧 info@equatorialtours.com
+              📧 equatorialtoursnmoney@yahoo.com
               <br />
-              📞 +91 98765 43210
+              📞 +91 8981139988
             </p>
           </section>
 
