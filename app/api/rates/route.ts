@@ -107,14 +107,37 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// XE 
+
+
+/* =========================================================
+   🚀 XE API VERSION (FUTURE USE)
+   Same structure as open.er-api
+   Just uncomment and comment above code
+========================================================= */
 
 // import { NextRequest, NextResponse } from "next/server";
+// import { sanityClient } from "@/lib/sanity.client";
+// import { currencyMarkupQuery } from "@/lib/queries";
+
+// type MarkupType = {
+//   buyMarkup: number;
+//   sellMarkup: number;
+// };
 
 // export async function GET(req: NextRequest) {
 //   try {
+
+//     /* =========================
+//        1️⃣ BASE CURRENCY
+//     ========================== */
+
 //     const { searchParams } = new URL(req.url);
-//     const from = searchParams.get("from") || "USD";
+//     const from = searchParams.get("from")?.toUpperCase() || "USD";
+
+
+//     /* =========================
+//        2️⃣ XE CREDENTIALS
+//     ========================== */
 
 //     const accountId = process.env.XE_ACCOUNT_ID;
 //     const apiKey = process.env.XE_API_KEY;
@@ -126,7 +149,18 @@ export async function GET(req: NextRequest) {
 //       );
 //     }
 
-//     const toCurrencies = "EUR,INR,JPY,RUB,AED,GBP";
+
+//     /* =========================
+//        3️⃣ TARGET CURRENCIES
+//     ========================== */
+
+//     const toCurrencies =
+//       "INR,USD,EUR,GBP,AED,JPY,AUD,CAD,SGD,THB";
+
+
+//     /* =========================
+//        4️⃣ FETCH XE RATES
+//     ========================== */
 
 //     const xeRes = await fetch(
 //       `https://xecdapi.xe.com/v1/convert_from.json/?from=${from}&to=${toCurrencies}`,
@@ -141,6 +175,7 @@ export async function GET(req: NextRequest) {
 //     );
 
 //     if (!xeRes.ok) {
+
 //       const text = await xeRes.text();
 //       console.error("XE ERROR:", text);
 
@@ -148,31 +183,70 @@ export async function GET(req: NextRequest) {
 //         { success: false, error: "Failed to fetch XE rates" },
 //         { status: 500 }
 //       );
+
 //     }
 
-//     const data = await xeRes.json();
+//     const xeData = await xeRes.json();
 
-//     const rates: Record<string, number> = {};
 
-//     if (data?.to) {
-//       data.to.forEach((item: any) => {
-//         rates[item.quotecurrency] = item.mid;
+//     /* =========================
+//        5️⃣ FORMAT RATES
+//     ========================== */
+
+//     const marketRates: Record<string, number> = {};
+
+//     if (xeData?.to) {
+//       xeData.to.forEach((item: any) => {
+//         marketRates[item.quotecurrency] = item.mid;
 //       });
 //     }
+
+
+//     /* =========================
+//        6️⃣ FETCH SANITY MARKUPS
+//     ========================== */
+
+//     const markupData = await sanityClient.fetch(currencyMarkupQuery);
+
+//     const markups: Record<string, MarkupType> = {};
+
+//     if (Array.isArray(markupData)) {
+
+//       markupData.forEach((item: any) => {
+
+//         const code = item?.currencyCode?.toUpperCase();
+//         if (!code) return;
+
+//         markups[code] = {
+//           buyMarkup: Number(item.buyMarkup) || 0,
+//           sellMarkup: Number(item.sellMarkup) || 0,
+//         };
+
+//       });
+
+//     }
+
+
+//     /* =========================
+//        7️⃣ FINAL RESPONSE
+//     ========================== */
 
 //     return NextResponse.json({
 //       success: true,
 //       base: from,
-//       rates,
-//       updated: new Date().toISOString(),
+//       rates: marketRates,
+//       markups,
+//       lastUpdated: new Date().toISOString(),
 //     });
 
 //   } catch (error) {
-//     console.error("SERVER ERROR:", error);
+
+//     console.error("XE API ERROR:", error);
 
 //     return NextResponse.json(
 //       { success: false, error: "Server error" },
 //       { status: 500 }
 //     );
+
 //   }
 // }
