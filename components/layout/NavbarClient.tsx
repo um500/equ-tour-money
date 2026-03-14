@@ -246,7 +246,15 @@ import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 
-export default function NavbarClient() {
+type Props = {
+  indiaStates: any[];
+  internationalCountries: any[];
+};
+
+export default function NavbarClient({
+  indiaStates,
+  internationalCountries,
+}: Props) {
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
