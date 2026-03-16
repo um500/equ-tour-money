@@ -38,7 +38,6 @@ export default function CurrencySection() {
   /* FETCH RATES */
 
   useEffect(() => {
-
     async function fetchData() {
 
       const data: RatesResponse = await getRates("INR");
@@ -48,11 +47,9 @@ export default function CurrencySection() {
       setRates(data.rates ?? {});
       setMarkups(data.markups ?? {});
       setLastUpdated(data.lastUpdated ?? null);
-
     }
 
     fetchData();
-
   }, []);
 
   /* ADD CURRENCY */
@@ -80,14 +77,14 @@ export default function CurrencySection() {
     )
     .map((currency) => ({
       value: currency.code,
-      label: currency.name,
+      label: `${currency.name} (${currency.code})`,
       code: currency.code,
       countryCode: currency.countryCode,
     }));
 
   return (
 
-    <section className="py-16 bg-[#f5f7fa]">
+    <section className="py-16 bg-[#f5f7fa] relative z-0">
 
       <div className="max-w-6xl mx-auto px-6">
 
@@ -192,6 +189,22 @@ export default function CurrencySection() {
               handleAddCurrency(selected?.value)
             }
             isSearchable
+
+            /* 🔥 FIX DROPDOWN HIDE ISSUE */
+            menuPortalTarget={typeof window !== "undefined" ? document.body : null}
+            menuPosition="fixed"
+            menuPlacement="auto"
+
+            styles={{
+              menuPortal: (base) => ({
+                ...base,
+                zIndex: 9999,
+              }),
+              menu: (base) => ({
+                ...base,
+                zIndex: 9999,
+              }),
+            }}
           />
 
         </div>

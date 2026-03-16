@@ -27,7 +27,13 @@ export default function CurrencyDropdown({ value, onChange }: Props) {
       onChange={(selected: any) => onChange(selected?.value || "")}
       isSearchable
       placeholder="Select currency"
-      className="w-80"
+      className="w-full"
+
+      /* 🔥 IMPORTANT FIX */
+      menuPortalTarget={typeof window !== "undefined" ? document.body : null}
+      menuPosition="fixed"
+      menuPlacement="auto"
+
       formatOptionLabel={(option: any) => (
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full overflow-hidden border border-gray-200">
@@ -37,33 +43,39 @@ export default function CurrencyDropdown({ value, onChange }: Props) {
               className="w-full h-full object-cover"
             />
           </div>
+
           <div>
-            <p className="font-medium text-gray-900">
-              {option.label}
-            </p>
-            <p className="text-xs text-gray-500">
-              {option.code}
-            </p>
+            <p className="font-medium text-gray-900">{option.label}</p>
+            <p className="text-xs text-gray-500">{option.code}</p>
           </div>
         </div>
       )}
+
       styles={{
-        control: (base, state) => ({
+        menuPortal: (base) => ({
           ...base,
-          backgroundColor: "transparent",   // 🔥 DARK ROW FIX
-          borderRadius: "20px",
-          padding: "6px",
-          border: "none",
+          zIndex: 9999,
+        }),
+
+        control: (base) => ({
+          ...base,
+          backgroundColor: "transparent",
+          borderRadius: "16px",
+          padding: "4px",
+          border: "1px solid #e5e7eb",
           boxShadow: "none",
           cursor: "pointer",
         }),
+
         menu: (base) => ({
           ...base,
           backgroundColor: "#ffffff",
-          borderRadius: "20px",
+          borderRadius: "16px",
           overflow: "hidden",
           boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
+          zIndex: 9999,
         }),
+
         option: (base, state) => ({
           ...base,
           backgroundColor: state.isSelected
@@ -75,17 +87,20 @@ export default function CurrencyDropdown({ value, onChange }: Props) {
           padding: "12px 16px",
           cursor: "pointer",
         }),
+
         singleValue: (base) => ({
           ...base,
-          color: "#ffffff",   // 🔥 WHITE TEXT ON DARK BG
+          color: "#111827",
           fontWeight: 600,
         }),
+
         dropdownIndicator: (base) => ({
           ...base,
-          color: "#ffffff",  // 🔥 White arrow
+          color: "#6b7280",
         }),
+
         indicatorSeparator: () => ({
-          display: "none",   // 🔥 cleaner look
+          display: "none",
         }),
       }}
     />

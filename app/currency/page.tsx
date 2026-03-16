@@ -165,7 +165,7 @@ export default function CurrencyPage() {
 
       </section>
 
-      <section className="px-6 pb-20">
+      <section className="px-6 pb-20 relative z-50">
 
         <div className="max-w-3xl mx-auto bg-white rounded-xl p-8 shadow-xl border-2 border-orange-400">
 
@@ -391,7 +391,7 @@ export default function CurrencyPage() {
         <CurrencySlide />
       </div>
 
-      <section className="bg-gray-100 pt-20 pb-20">
+       <section className="bg-gray-100 pt-20 pb-20">
         <CurrencySection />
       </section>
 
