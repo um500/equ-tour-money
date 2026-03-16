@@ -114,7 +114,6 @@ export async function GET(req: NextRequest) {
    Same structure as open.er-api
    Just uncomment and comment above code
 ========================================================= */
-
 // import { NextRequest, NextResponse } from "next/server";
 // import { sanityClient } from "@/lib/sanity.client";
 // import { currencyMarkupQuery } from "@/lib/queries";
@@ -136,17 +135,22 @@ export async function GET(req: NextRequest) {
 
 
 //     /* =========================
-//        2️⃣ XE CREDENTIALS
+//        2️⃣ XE API CREDENTIALS
 //     ========================== */
 
 //     const accountId = process.env.XE_ACCOUNT_ID;
 //     const apiKey = process.env.XE_API_KEY;
 
 //     if (!accountId || !apiKey) {
+
 //       return NextResponse.json(
-//         { success: false, error: "XE credentials missing" },
+//         {
+//           success: false,
+//           error: "XE credentials missing",
+//         },
 //         { status: 500 }
 //       );
+
 //     }
 
 
@@ -177,10 +181,14 @@ export async function GET(req: NextRequest) {
 //     if (!xeRes.ok) {
 
 //       const text = await xeRes.text();
-//       console.error("XE ERROR:", text);
+
+//       console.error("XE API ERROR:", text);
 
 //       return NextResponse.json(
-//         { success: false, error: "Failed to fetch XE rates" },
+//         {
+//           success: false,
+//           error: "Failed to fetch XE rates",
+//         },
 //         { status: 500 }
 //       );
 
@@ -190,15 +198,23 @@ export async function GET(req: NextRequest) {
 
 
 //     /* =========================
-//        5️⃣ FORMAT RATES
+//        5️⃣ FORMAT XE RESPONSE
 //     ========================== */
 
 //     const marketRates: Record<string, number> = {};
 
-//     if (xeData?.to) {
+//     if (Array.isArray(xeData?.to)) {
+
 //       xeData.to.forEach((item: any) => {
-//         marketRates[item.quotecurrency] = item.mid;
+
+//         const currency = item?.quotecurrency;
+
+//         if (!currency) return;
+
+//         marketRates[currency] = Number(item.mid) || 0;
+
 //       });
+
 //     }
 
 
@@ -215,6 +231,7 @@ export async function GET(req: NextRequest) {
 //       markupData.forEach((item: any) => {
 
 //         const code = item?.currencyCode?.toUpperCase();
+
 //         if (!code) return;
 
 //         markups[code] = {
@@ -244,7 +261,10 @@ export async function GET(req: NextRequest) {
 //     console.error("XE API ERROR:", error);
 
 //     return NextResponse.json(
-//       { success: false, error: "Server error" },
+//       {
+//         success: false,
+//         error: "Internal server error",
+//       },
 //       { status: 500 }
 //     );
 

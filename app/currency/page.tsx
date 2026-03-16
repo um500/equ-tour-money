@@ -92,25 +92,25 @@ export default function CurrencyPage() {
 
   let finalRate: number | null = null;
 
-  const baseRate = rates["INR"];
+const baseRate = rates["INR"];
 
-  const selectedCurrency = tab === "buy" ? to : from;
+const selectedCurrency = tab === "buy" ? to : from;
 
-  const currencyMarkup = markups[selectedCurrency];
+const currencyMarkup = markups[selectedCurrency];
 
-  if (baseRate) {
+if (baseRate) {
 
-    if (tab === "buy") {
+  if (tab === "buy") {
 
-      finalRate = baseRate + (currencyMarkup?.buyMarkup || 0);
+    finalRate = baseRate + (currencyMarkup?.buyMarkup || 0);
 
-    } else {
+  } else {
 
-      finalRate = baseRate - (currencyMarkup?.sellMarkup || 0);
-
-    }
+    finalRate = baseRate - (currencyMarkup?.sellMarkup || 0);
 
   }
+
+}
 
   /* CONVERT */
 
