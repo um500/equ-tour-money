@@ -33,7 +33,7 @@ export default function CurrencyPage() {
   const flagUrl = (code: string) =>
     `https://flagcdn.com/w40/${code}.png`;
 
-  /* ================= CLOSE DROPDOWN ================= */
+  /* CLOSE DROPDOWN */
 
   useEffect(() => {
 
@@ -56,7 +56,7 @@ export default function CurrencyPage() {
 
   }, []);
 
-  /* ================= FETCH RATE ================= */
+  /* FETCH RATES */
 
   useEffect(() => {
 
@@ -88,7 +88,7 @@ export default function CurrencyPage() {
 
   }, [from, to, tab]);
 
-  /* ================= RATE CALCULATION ================= */
+  /* RATE CALCULATION */
 
   let finalRate: number | null = null;
 
@@ -112,7 +112,7 @@ export default function CurrencyPage() {
 
   }
 
-  /* ================= CONVERT ================= */
+  /* CONVERT */
 
   const handleConvert = () => {
 
@@ -122,14 +122,14 @@ export default function CurrencyPage() {
 
     setTimeout(() => {
 
-      setConverted(Number(amount) * finalRate!);
+      setConverted(Number(amount) * finalRate);
       setLoading(false);
 
     }, 200);
 
   };
 
-  /* ================= TAB CHANGE ================= */
+  /* TAB CHANGE */
 
   useEffect(() => {
 
@@ -153,6 +153,8 @@ export default function CurrencyPage() {
 
     <div className="min-h-screen bg-gradient-to-br from-[#0b1b5a] to-[#1e2f9f]">
 
+      {/* HERO */}
+
       <section className="pt-32 pb-16 text-center text-white">
 
         <h1 className="text-4xl font-bold mb-4">
@@ -165,7 +167,9 @@ export default function CurrencyPage() {
 
       </section>
 
-      <section className="px-6 pb-20 relative z-50">
+      {/* CONVERTER CARD */}
+
+      <section className="px-6 pb-20">
 
         <div className="max-w-3xl mx-auto bg-white rounded-xl p-8 shadow-xl border-2 border-orange-400">
 
@@ -203,7 +207,7 @@ export default function CurrencyPage() {
             <option>Select City</option>
             <option>Kolkata</option>
             <option>Mumbai</option>
-            <option>Benglore</option>
+            <option>Bangalore</option>
             <option>Agartala</option>
           </select>
 
@@ -224,7 +228,9 @@ export default function CurrencyPage() {
                   if (tab === "sell") setOpenFrom(!openFrom);
                 }}
                 className={`mt-2 border rounded-lg p-3 flex justify-between ${
-                  tab === "buy" ? "cursor-not-allowed bg-gray-100" : "cursor-pointer"
+                  tab === "buy"
+                    ? "cursor-not-allowed bg-gray-100"
+                    : "cursor-pointer"
                 }`}
               >
 
@@ -290,7 +296,9 @@ export default function CurrencyPage() {
                   if (tab === "buy") setOpenTo(!openTo);
                 }}
                 className={`mt-2 border rounded-lg p-3 flex justify-between ${
-                  tab === "sell" ? "cursor-not-allowed bg-gray-100" : "cursor-pointer"
+                  tab === "sell"
+                    ? "cursor-not-allowed bg-gray-100"
+                    : "cursor-pointer"
                 }`}
               >
 
@@ -387,16 +395,19 @@ export default function CurrencyPage() {
 
       </section>
 
-      <div className="relative -mt-16 mb-10 z-20">
+      {/* CURRENCY SLIDER */}
+
+      <div className="mt-12 mb-12">
         <CurrencySlide />
       </div>
 
-       <section className="bg-gray-100 pt-20 pb-20">
+      {/* LIVE RATES SECTION */}
+
+      <section className="bg-gray-100 py-20">
         <CurrencySection />
       </section>
 
     </div>
 
   );
-
 }
